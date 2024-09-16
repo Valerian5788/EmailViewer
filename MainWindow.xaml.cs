@@ -14,57 +14,100 @@ namespace EmailViewer
     public partial class MainWindow : Window
     {
         private List<string> currentEmailPaths = new List<string>();
-        private RecentFoldersManager recentFoldersManager;
+        private RecentEmailsManager recentEmailsManager;
+        private EmailSearcher emailSearcher;
+        private NoteManager noteManager;
+        private string rootPath;
+        private string currentEmailPath;
 
         public MainWindow()
         {
             InitializeComponent();
-            recentFoldersManager = new RecentFoldersManager();
-            fileListBox.SelectionChanged += FileListBox_SelectionChanged;
-            LoadRecentFolders();
+            recentEmailsManager = new RecentEmailsManager();
+            emailSearcher = new EmailSearcher();
+            noteManager = new NoteManager();
             Closing += MainWindow_Closing;
+            LoadRecentEmails();
         }
 
-        private void LoadRecentFolders()
+        private void LoadRecentEmails()
         {
-            recentFoldersListBox.Items.Clear();
-            foreach (var folder in recentFoldersManager.RecentFolders)
+            recentEmailsListBox.Items.Clear();
+            foreach (var emailPath in recentEmailsManager.RecentEmails)
             {
-                recentFoldersListBox.Items.Add(folder);
+                recentEmailsListBox.Items.Add(Path.GetFileName(emailPath));
             }
         }
 
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void OpenRootFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            // The RecentFoldersManager will save the folders when the application closes
-        }
-
-        private void OpenFileButton_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            var openFileDialog = new OpenFileDialog
             {
-                Filter = "Email files (*.eml)|*.eml|All files (*.*)|*.*",
-                Multiselect = false
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Folder Selection.",
+                Title = "Select Root Folder"
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
-                string folderPath = Path.GetDirectoryName(openFileDialog.FileName);
-                recentFoldersManager.AddFolder(folderPath);
-                LoadRecentFolders();
-                LoadEmailsFromDirectory(folderPath);
-                SelectAndDisplayEmail(openFileDialog.FileName);
+                rootPath = Path.GetDirectoryName(openFileDialog.FileName);
+                PopulateFolderTreeView();
             }
         }
 
-        private void RecentFolderListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void PopulateFolderTreeView()
         {
-            if (recentFoldersListBox.SelectedItem is string selectedFolder)
+            folderTreeView.Items.Clear();
+
+            var rootItem = new TreeViewItem
             {
-                LoadEmailsFromDirectory(selectedFolder);
-                if (currentEmailPaths.Any())
+                Header = new TextBlock { Text = "Root" },
+                Tag = rootPath
+            };
+            folderTreeView.Items.Add(rootItem);
+
+            PopulateTreeViewItem(rootItem, rootPath);
+            rootItem.IsExpanded = true;
+        }
+
+        private void PopulateTreeViewItem(TreeViewItem item, string path)
+        {
+            var directories = Directory.GetDirectories(path);
+            foreach (var directory in directories)
+            {
+                var directoryInfo = new DirectoryInfo(directory);
+                var subItem = new TreeViewItem
                 {
-                    SelectAndDisplayEmail(currentEmailPaths.First());
+                    Header = new TextBlock { Text = directoryInfo.Name },
+                    Tag = directory
+                };
+                item.Items.Add(subItem);
+
+                // Check if this directory contains .eml files
+                if (Directory.GetFiles(directory, "*.eml").Any())
+                {
+                    var emailsItem = new TreeViewItem
+                    {
+                        Header = new TextBlock { Text = "Emails" },
+                        Tag = directory
+                    };
+                    subItem.Items.Add(emailsItem);
+                }
+
+                PopulateTreeViewItem(subItem, directory);
+            }
+        }
+
+        private void FolderTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var selectedItem = e.NewValue as TreeViewItem;
+            if (selectedItem != null && selectedItem.Tag is string selectedPath)
+            {
+                if (selectedItem.Header is TextBlock textBlock && textBlock.Text == "Emails")
+                {
+                    LoadEmailsFromDirectory(selectedPath);
                 }
             }
         }
@@ -72,30 +115,40 @@ namespace EmailViewer
         private void LoadEmailsFromDirectory(string directoryPath)
         {
             currentEmailPaths = Directory.GetFiles(directoryPath, "*.eml").ToList();
-            fileListBox.Items.Clear();
-
-            foreach (string emailPath in currentEmailPaths)
+            searchResultsListView.ItemsSource = currentEmailPaths.Select(path => new EmailSearcher.SearchResult
             {
-                fileListBox.Items.Add(Path.GetFileName(emailPath));
-            }
+                FilePath = path,
+                Subject = Path.GetFileNameWithoutExtension(path),
+                Client = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))),
+                Project = Path.GetFileName(Path.GetDirectoryName(path)),
+                // You might want to load the actual email to get the sender and date
+                Sender = "Unknown",
+                Date = File.GetCreationTime(path)
+            }).ToList();
         }
 
-        private void SelectAndDisplayEmail(string emailPath)
+        private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
-            int index = currentEmailPaths.IndexOf(emailPath);
-            if (index >= 0)
+            if (string.IsNullOrEmpty(rootPath))
             {
-                fileListBox.SelectedIndex = index;
-                DisplayEmail(emailPath);
+                MessageBox.Show("Please select a root folder first.");
+                return;
             }
+
+            string searchTerm = searchTextBox.Text;
+            string senderFilter = senderTextBox.Text;
+            DateTime? startDate = startDatePicker.SelectedDate;
+            DateTime? endDate = endDatePicker.SelectedDate;
+
+            var searchResults = emailSearcher.Search(rootPath, searchTerm, null, null, startDate, endDate, senderFilter);
+            searchResultsListView.ItemsSource = searchResults;
         }
 
-        private void FileListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SearchResultsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            int selectedIndex = fileListBox.SelectedIndex;
-            if (selectedIndex >= 0 && selectedIndex < currentEmailPaths.Count)
+            if (searchResultsListView.SelectedItem is EmailSearcher.SearchResult selectedResult)
             {
-                DisplayEmail(currentEmailPaths[selectedIndex]);
+                DisplayEmail(selectedResult.FilePath);
             }
         }
 
@@ -106,23 +159,27 @@ namespace EmailViewer
                 var message = MimeMessage.Load(filePath);
                 emailContentRichTextBox.Document.Blocks.Clear();
 
-                // Display main email
-                AddEmailContent(message, false);
+                Paragraph headerPara = new Paragraph();
+                headerPara.Inlines.Add(new Bold(new Run("From: ")));
+                headerPara.Inlines.Add(new Run(message.From.ToString() + Environment.NewLine));
+                headerPara.Inlines.Add(new Bold(new Run("Subject: ")));
+                headerPara.Inlines.Add(new Run(message.Subject + Environment.NewLine));
+                headerPara.Inlines.Add(new Bold(new Run("Date: ")));
+                headerPara.Inlines.Add(new Run(message.Date.ToString("g") + Environment.NewLine));
 
-                // Display replies if any
-                if (message.References.Any() || message.InReplyTo != null)
-                {
-                    // Create a dummy reply message
-                    var dummyReply = new MimeMessage
-                    {
-                        Subject = "Re: " + message.Subject,
-                        Date = message.Date.AddHours(1)
-                    };
-                    dummyReply.From.Add(new MailboxAddress("Reply Sender", "reply@example.com"));
-                    dummyReply.Body = new TextPart("plain") { Text = "This is a placeholder for a reply message." };
+                emailContentRichTextBox.Document.Blocks.Add(headerPara);
 
-                    AddEmailContent(dummyReply, true);
-                }
+                Paragraph bodyPara = new Paragraph(new Run(message.TextBody ?? ""));
+                bodyPara.FontWeight = FontWeights.Normal;
+                bodyPara.Margin = new Thickness(0, 10, 0, 0);
+
+                emailContentRichTextBox.Document.Blocks.Add(bodyPara);
+
+                recentEmailsManager.AddEmail(filePath);
+                LoadRecentEmails();
+
+                currentEmailPath = filePath;
+                LoadNotesForCurrentEmail();
             }
             catch (Exception ex)
             {
@@ -130,40 +187,92 @@ namespace EmailViewer
             }
         }
 
-        private void AddEmailContent(MimeMessage email, bool isReply)
+        private void RecentEmailsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Paragraph headerPara = new Paragraph();
-            headerPara.Inlines.Add(new Bold(new Run("From: ")));
-            headerPara.Inlines.Add(new Run(email.From.ToString() + Environment.NewLine));
-            headerPara.Inlines.Add(new Bold(new Run("Subject: ")));
-            headerPara.Inlines.Add(new Run(email.Subject + Environment.NewLine));
-            headerPara.Inlines.Add(new Bold(new Run("Date: ")));
-            headerPara.Inlines.Add(new Run(email.Date.ToString("g") + Environment.NewLine));
-
-            if (isReply)
+            if (recentEmailsListBox.SelectedItem is string selectedFileName)
             {
-                headerPara.Background = Brushes.LightGray;
-                headerPara.Inlines.InsertBefore(headerPara.Inlines.FirstInline, new Bold(new Run("--- Reply ---" + Environment.NewLine)));
+                string fullPath = recentEmailsManager.RecentEmails.FirstOrDefault(path => Path.GetFileName(path) == selectedFileName);
+                if (fullPath != null)
+                {
+                    DisplayEmail(fullPath);
+                }
             }
-
-            emailContentRichTextBox.Document.Blocks.Add(headerPara);
-
-            Paragraph bodyPara = new Paragraph(new Run(email.TextBody ?? ""));
-            bodyPara.FontWeight = FontWeights.Normal;
-            bodyPara.Margin = new Thickness(0, 10, 0, 20);
-
-            if (isReply)
-            {
-                bodyPara.Background = Brushes.LightGray;
-            }
-
-            emailContentRichTextBox.Document.Blocks.Add(bodyPara);
         }
 
-        private void SaveNoteButton_Click(object sender, RoutedEventArgs e)
+        private void LoadNotesForCurrentEmail()
         {
-            // We'll implement this later
-            MessageBox.Show("Note saving functionality will be implemented soon!");
+            if (!string.IsNullOrEmpty(currentEmailPath))
+            {
+                var notes = noteManager.GetNotesForEmail(currentEmailPath);
+                notesListView.ItemsSource = notes;
+            }
+        }
+
+        private void NotesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (notesListView.SelectedItem is Note selectedNote)
+            {
+                noteContentTextBox.Text = selectedNote.Content;
+                noteTagsTextBox.Text = string.Join(", ", selectedNote.Tags);
+            }
+        }
+
+        private void AddUpdateNoteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentEmailPath))
+            {
+                MessageBox.Show("Please select an email first.");
+                return;
+            }
+
+            string content = noteContentTextBox.Text;
+            List<string> tags = noteTagsTextBox.Text.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+
+            if (notesListView.SelectedItem is Note selectedNote)
+            {
+                noteManager.UpdateNote(selectedNote.Id, content, tags);
+            }
+            else
+            {
+                noteManager.AddNote(currentEmailPath, content, tags);
+            }
+
+            LoadNotesForCurrentEmail();
+            ClearNoteInputs();
+        }
+
+        private void DeleteNoteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (notesListView.SelectedItem is Note selectedNote)
+            {
+                noteManager.DeleteNote(selectedNote.Id);
+                LoadNotesForCurrentEmail();
+                ClearNoteInputs();
+            }
+            else
+            {
+                MessageBox.Show("Please select a note to delete.");
+            }
+        }
+
+        private void SearchNotesButton_Click(object sender, RoutedEventArgs e)
+        {
+            string searchTerm = noteSearchTextBox.Text;
+            List<string> tags = noteTagsTextBox.Text.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+
+            var searchResults = noteManager.SearchNotes(searchTerm, tags);
+            notesListView.ItemsSource = searchResults;
+        }
+
+        private void ClearNoteInputs()
+        {
+            noteContentTextBox.Clear();
+            noteTagsTextBox.Clear();
+            notesListView.SelectedItem = null;
+        }
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // The RecentFoldersManager will save the folders when the application closes
         }
     }
 }
