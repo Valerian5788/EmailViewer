@@ -40,11 +40,17 @@ namespace EmailViewer
 
     public class TaskDetails
     {
+        public Guid Id { get; set; }
         public DateTime Date { get; set; }
         public string RequestedBy { get; set; }
         public string TaskDescription { get; set; }
         public string Document { get; set; }
         public string AssignedTo { get; set; }
         public string Status { get; set; }
+
+        public TaskDetails()
+        {
+            Id = Guid.NewGuid(); // Generate a new GUID when the task is created
+        }
     }
 }
