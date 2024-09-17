@@ -1,14 +1,12 @@
 ﻿using MimeKit;
-using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.Win32;
 using System.IO;
-using System.Linq;
-using System.Windows.Media;
 using System.Collections.ObjectModel;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Runtime.InteropServices;
 
 namespace EmailViewer
 {
@@ -319,6 +317,95 @@ namespace EmailViewer
             noteContentTextBox.Clear();
             selectedTags.Clear();
             notesListView.SelectedItem = null;
+        }
+
+        private void CreateTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentEmailPath))
+            {
+                MessageBox.Show("Veuillez sélectionner un email d'abord.");
+                return;
+            }
+
+            string excelFilePath = SelectExcelFile();
+            if (string.IsNullOrEmpty(excelFilePath))
+            {
+                return; // User canceled file selection
+            }
+
+            var taskWindow = new TaskCreationWindow(currentEmailPath);
+            if (taskWindow.ShowDialog() == true)
+            {
+                CreateExcelTask(taskWindow.TaskDetails, excelFilePath);
+            }
+        }
+
+        private string SelectExcelFile()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm",
+                Title = "Sélectionner le fichier Excel"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                return openFileDialog.FileName;
+            }
+
+            return null;
+        }
+
+        private void CreateExcelTask(TaskDetails taskDetails, string excelFilePath)
+        {
+            Excel.Application excelApp = null;
+            Excel.Workbook workbook = null;
+            Excel.Worksheet worksheet = null;
+
+            try
+            {
+                excelApp = new Excel.Application();
+                excelApp.DisplayAlerts = false; // Disable alerts
+                workbook = excelApp.Workbooks.Open(excelFilePath, ReadOnly: false, Editable: true);
+                worksheet = workbook.Worksheets["To Do"]; // Use the "To Do" sheet
+
+                // Find the next available row starting from row 5
+                int newRow = 5;
+                while (!string.IsNullOrWhiteSpace(Convert.ToString(worksheet.Cells[newRow, 1].Value)))
+                {
+                    newRow++;
+                }
+
+                worksheet.Cells[newRow, 1] = taskDetails.Date;
+                worksheet.Cells[newRow, 2] = taskDetails.RequestedBy;
+                worksheet.Cells[newRow, 3] = taskDetails.TaskDescription;
+                worksheet.Cells[newRow, 4] = taskDetails.Document;
+                worksheet.Cells[newRow, 5] = taskDetails.AssignedTo;
+                // Leave two columns empty
+                worksheet.Cells[newRow, 8] = taskDetails.Status;
+
+                workbook.Save();
+                MessageBox.Show("Tâche créée avec succès !");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la création de la tâche : {ex.Message}");
+            }
+            finally
+            {
+                if (excelApp != null) excelApp.DisplayAlerts = true; // Re-enable alerts
+                if (worksheet != null) Marshal.ReleaseComObject(worksheet);
+                if (workbook != null)
+                {
+                    workbook.Close(true);
+                    Marshal.ReleaseComObject(workbook);
+                }
+                if (excelApp != null)
+                {
+                    excelApp.Quit();
+                    Marshal.ReleaseComObject(excelApp);
+                }
+            }
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
