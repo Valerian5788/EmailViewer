@@ -381,7 +381,8 @@ namespace EmailViewer
                 worksheet.Cells[newRow, 3] = taskDetails.TaskDescription;
                 worksheet.Cells[newRow, 4] = taskDetails.Document;
                 worksheet.Cells[newRow, 5] = taskDetails.AssignedTo;
-                // Leave two columns empty
+                worksheet.Cells[newRow, 6] = ""; // Leave column F empty
+                worksheet.Cells[newRow, 7] = taskDetails.Id.ToString(); // Add GUID to column G
                 worksheet.Cells[newRow, 8] = taskDetails.Status;
 
                 workbook.Save();
