@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
+using System.Collections.ObjectModel;
 
 namespace EmailViewer
 {
@@ -19,6 +20,8 @@ namespace EmailViewer
         private NoteManager noteManager;
         private string rootPath;
         private string currentEmailPath;
+        private ObservableCollection<string> availableTags;
+        private ObservableCollection<string> selectedTags;
 
         public MainWindow()
         {
@@ -26,8 +29,48 @@ namespace EmailViewer
             recentEmailsManager = new RecentEmailsManager();
             emailSearcher = new EmailSearcher();
             noteManager = new NoteManager();
+            availableTags = new ObservableCollection<string> { "Urgent", "To Do", "To Treat" };
+            selectedTags = new ObservableCollection<string>();
+            noteTagsComboBox.ItemsSource = availableTags;
+            selectedTagsItemsControl.ItemsSource = selectedTags;
             Closing += MainWindow_Closing;
             LoadRecentEmails();
+        }
+
+        private void ToggleSearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (searchGrid.Visibility == Visibility.Visible)
+            {
+                searchGrid.Visibility = Visibility.Collapsed;
+                toggleSearchButton.Content = "▼ Show Search";
+            }
+            else
+            {
+                searchGrid.Visibility = Visibility.Visible;
+                toggleSearchButton.Content = "▲ Hide Search";
+            }
+        }
+
+        private void AddTagButton_Click(object sender, RoutedEventArgs e)
+        {
+            string newTag = noteTagsComboBox.Text.Trim();
+            if (!string.IsNullOrEmpty(newTag) && !selectedTags.Contains(newTag))
+            {
+                selectedTags.Add(newTag);
+                if (!availableTags.Contains(newTag))
+                {
+                    availableTags.Add(newTag);
+                }
+                noteTagsComboBox.Text = "";
+            }
+        }
+
+        private void RemoveTagButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tag)
+            {
+                selectedTags.Remove(tag);
+            }
         }
 
         private void LoadRecentEmails()
@@ -212,8 +255,13 @@ namespace EmailViewer
         {
             if (notesListView.SelectedItem is Note selectedNote)
             {
+                noteTitleTextBox.Text = selectedNote.Title;
                 noteContentTextBox.Text = selectedNote.Content;
-                noteTagsTextBox.Text = string.Join(", ", selectedNote.Tags);
+                selectedTags.Clear();
+                foreach (var tag in selectedNote.Tags)
+                {
+                    selectedTags.Add(tag);
+                }
             }
         }
 
@@ -225,16 +273,17 @@ namespace EmailViewer
                 return;
             }
 
+            string title = noteTitleTextBox.Text;
             string content = noteContentTextBox.Text;
-            List<string> tags = noteTagsTextBox.Text.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+            List<string> tags = selectedTags.ToList();
 
             if (notesListView.SelectedItem is Note selectedNote)
             {
-                noteManager.UpdateNote(selectedNote.Id, content, tags);
+                noteManager.UpdateNote(selectedNote.Id, title, content, tags);
             }
             else
             {
-                noteManager.AddNote(currentEmailPath, content, tags);
+                noteManager.AddNote(currentEmailPath, title, content, tags);
             }
 
             LoadNotesForCurrentEmail();
@@ -258,7 +307,7 @@ namespace EmailViewer
         private void SearchNotesButton_Click(object sender, RoutedEventArgs e)
         {
             string searchTerm = noteSearchTextBox.Text;
-            List<string> tags = noteTagsTextBox.Text.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+            List<string> tags = selectedTags.ToList(); // Use selectedTags instead of noteTagsTextBox
 
             var searchResults = noteManager.SearchNotes(searchTerm, tags);
             notesListView.ItemsSource = searchResults;
@@ -266,10 +315,12 @@ namespace EmailViewer
 
         private void ClearNoteInputs()
         {
+            noteTitleTextBox.Clear();
             noteContentTextBox.Clear();
-            noteTagsTextBox.Clear();
+            selectedTags.Clear();
             notesListView.SelectedItem = null;
         }
+
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             // The RecentFoldersManager will save the folders when the application closes

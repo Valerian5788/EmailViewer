@@ -16,12 +16,13 @@ namespace EmailViewer
             _notes = LoadNotes();
         }
 
-        public Note AddNote(string emailPath, string content, List<string> tags)
+        public Note AddNote(string emailPath, string title, string content, List<string> tags)
         {
             var note = new Note
             {
                 Id = _notes.Count > 0 ? _notes.Max(n => n.Id) + 1 : 1,
                 EmailPath = emailPath,
+                Title = title,
                 Content = content,
                 Tags = tags,
                 CreatedAt = DateTime.Now,
@@ -33,11 +34,12 @@ namespace EmailViewer
             return note;
         }
 
-        public Note UpdateNote(int id, string content, List<string> tags)
+        public Note UpdateNote(int id, string title, string content, List<string> tags)
         {
             var note = _notes.FirstOrDefault(n => n.Id == id);
             if (note != null)
             {
+                note.Title = title;
                 note.Content = content;
                 note.Tags = tags;
                 note.UpdatedAt = DateTime.Now;
@@ -60,7 +62,9 @@ namespace EmailViewer
         public List<Note> SearchNotes(string searchTerm, List<string> tags = null)
         {
             return _notes.Where(n =>
-                (string.IsNullOrEmpty(searchTerm) || n.Content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(searchTerm) ||
+                 n.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                 n.Content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
                 (tags == null || tags.Count == 0 || tags.All(t => n.Tags.Contains(t)))
             ).ToList();
         }
@@ -70,7 +74,18 @@ namespace EmailViewer
             if (File.Exists(NotesFile))
             {
                 string json = File.ReadAllText(NotesFile);
-                return JsonConvert.DeserializeObject<List<Note>>(json) ?? new List<Note>();
+                var notes = JsonConvert.DeserializeObject<List<Note>>(json) ?? new List<Note>();
+
+                // Ensure all notes have a title
+                foreach (var note in notes)
+                {
+                    if (string.IsNullOrEmpty(note.Title))
+                    {
+                        note.Title = "Untitled Note";
+                    }
+                }
+
+                return notes;
             }
             return new List<Note>();
         }
