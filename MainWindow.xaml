@@ -67,6 +67,7 @@
                     </GridView>
                 </ListView.View>
             </ListView>
+            <Button Content="Créer une tâche" Click="CreateTaskButton_Click" Grid.Row="2" HorizontalAlignment="Right" Margin="5"/>
             <RichTextBox x:Name="emailContentRichTextBox" Grid.Row="3" IsReadOnly="True" Margin="5" VerticalAlignment="Stretch"/>
         </Grid>
         <!-- Right panel (notes) -->
