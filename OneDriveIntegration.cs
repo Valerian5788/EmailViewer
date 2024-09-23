@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace EmailViewer
 {
     public class OneDriveIntegration
     {
         private static string oneDriveRootPath;
-        private const string ONEDRIVE_BASE_URL = "https://1drv.ms/";
-        private const string SHARE_ID = "s!Aos4jtA_FWlQjhTF93YNtpjKbzXx";
+        private const string ONEDRIVE_BASE_URL = "https://1drv.ms/u/s!";
+        private const string RESOURCE_ID = "Aos4jtA_FWlQ"; // This should be your actual resource ID
 
         public static void SetOneDriveRootPath(string path)
         {
@@ -47,12 +42,23 @@ namespace EmailViewer
                 throw new ArgumentException("The file is not in the OneDrive folder.", nameof(localPath));
             }
 
-            string relativePath = localPath.Substring(oneDriveRootPath.Length).TrimStart('\\', '/');
-            string encodedPath = Uri.EscapeDataString(relativePath);
-            string oneDriveLink = $"{ONEDRIVE_BASE_URL}{SHARE_ID}?path=/{encodedPath}";
+            // Generate a unique identifier for the file
+            string fileIdentifier = GenerateFileIdentifier(localPath);
+
+            // Construct the OneDrive link
+            string oneDriveLink = $"{ONEDRIVE_BASE_URL}{RESOURCE_ID}{fileIdentifier}";
 
             Logger.Log($"Generated OneDrive link: {oneDriveLink}");
             return oneDriveLink;
+        }
+
+        private static string GenerateFileIdentifier(string localPath)
+        {
+            // This is a simplified method to generate a unique identifier
+            // In a real-world scenario, you might want to use a more sophisticated approach
+            string relativePath = localPath.Substring(oneDriveRootPath.Length).TrimStart('\\', '/');
+            string hash = BitConverter.ToString(System.Security.Cryptography.MD5.Create().ComputeHash(System.Text.Encoding.UTF8.GetBytes(relativePath))).Replace("-", "").Substring(0, 15);
+            return hash;
         }
     }
 }

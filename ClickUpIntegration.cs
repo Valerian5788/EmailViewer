@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using System.Collections.Generic;
+using System.IO;
 
 namespace EmailViewer
 {
@@ -27,34 +27,6 @@ namespace EmailViewer
                 throw new ArgumentException("Invalid assignee ID", nameof(taskDetails.AssignedTo));
             }
 
-            string documentPathUrl;
-            string emailLinkUrl;
-
-            Logger.Log($"Attempting to generate OneDrive links for document: {taskDetails.Document} and email: {emailPath}");
-
-            try
-            {
-                documentPathUrl = OneDriveIntegration.GetOneDriveLink(taskDetails.Document);
-                Logger.Log($"Successfully generated OneDrive document URL: {documentPathUrl}");
-
-                // Decode the email path
-                string decodedEmailPath = Uri.UnescapeDataString(emailPath.Replace("file://", ""));
-                emailLinkUrl = OneDriveIntegration.GetOneDriveLink(decodedEmailPath);
-                Logger.Log($"Successfully generated OneDrive email URL: {emailLinkUrl}");
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Error generating OneDrive links: {ex.Message}");
-                Logger.Log($"Exception details: {ex}");
-                Logger.Log("Using fake URLs instead.");
-
-                documentPathUrl = $"https://example.com/onedrive/document/{Uri.EscapeDataString(taskDetails.Document)}";
-                emailLinkUrl = $"https://example.com/onedrive/email/{Guid.NewGuid()}";
-
-                Logger.Log($"Using fake document URL: {documentPathUrl}");
-                Logger.Log($"Using fake email URL: {emailLinkUrl}");
-            }
-
             var taskData = new
             {
                 name = taskDetails.TaskDescription,
@@ -62,30 +34,14 @@ namespace EmailViewer
                 status = MapStatus(taskDetails.Status),
                 due_date = ((DateTimeOffset)taskDetails.Date).ToUnixTimeMilliseconds(),
                 assignees = new[] { assigneeId },
-                custom_fields = new[]
-                {
-            new
-            {
-                id = "050935e2-46c9-4a3d-a0c7-6d317d8d90d7",
-                value = documentPathUrl
-            },
-            new
-            {
-                id = "17629225-7613-40a3-8dfb-989dffbc7999",
-                value = emailLinkUrl
-            }
-        }
+                // Include other custom fields if necessary
             };
 
-            var json = JsonConvert.SerializeObject(taskData, Formatting.Indented);
-            Logger.Log($"JSON being sent to ClickUp:\n{json}");
-
+            var json = JsonConvert.SerializeObject(taskData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync($"{BASE_URL}/list/{listId}/task", content);
-
             var responseContent = await response.Content.ReadAsStringAsync();
-            Logger.Log($"Response from ClickUp:\nStatus Code: {response.StatusCode}\nContent: {responseContent}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -93,14 +49,35 @@ namespace EmailViewer
             }
 
             var taskInfo = JsonConvert.DeserializeAnonymousType(responseContent, new { id = "" });
+            string taskId = taskInfo.id;
 
-            return taskInfo.id;
+            // Attach the email file to the created task
+            await AttachFileToTask(taskId, emailPath);
+
+            return taskId;
+        }
+
+        private async Task AttachFileToTask(string taskId, string filePath)
+        {
+            using (var content = new MultipartFormDataContent())
+            {
+                var fileContent = new ByteArrayContent(File.ReadAllBytes(filePath));
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+                content.Add(fileContent, "attachment", Path.GetFileName(filePath));
+
+                var response = await _httpClient.PostAsync($"{BASE_URL}/task/{taskId}/attachment", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"ClickUp API error when attaching file: {response.StatusCode}, {responseContent}");
+                }
+            }
         }
 
         private string MapStatus(string status)
         {
             // Map your application's status to ClickUp status
-            // You'll need to adjust this based on your ClickUp workspace's statuses
             switch (status)
             {
                 case "À faire": return "to do";
