@@ -12,11 +12,13 @@ namespace EmailViewer
         private readonly HttpClient _httpClient;
         private const string API_KEY = "pk_2667038_JP6JYQUO0SU5EEBAAT3TV9XXTV0MBLZJ";
         private const string BASE_URL = "https://api.clickup.com/api/v2";
+        private Func<string, string> getOrCreateEmailId; // Function to get or create email ID
 
-        public ClickUpIntegration()
+        public ClickUpIntegration(Func<string, string> getOrCreateEmailIdFunc)
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", API_KEY);
+            this.getOrCreateEmailId = getOrCreateEmailIdFunc;
         }
 
         public async Task<string> CreateTaskAsync(string listId, TaskDetails taskDetails, string emailPath)
@@ -27,14 +29,20 @@ namespace EmailViewer
                 throw new ArgumentException("Invalid assignee ID", nameof(taskDetails.AssignedTo));
             }
 
+            // Get or create email ID using the provided function
+            string emailId = getOrCreateEmailId(emailPath);
+
+            // Generate the custom URL
+            string customUrl = $"emailviewer:open?id={Uri.EscapeDataString(emailId)}";
+
             var taskData = new
             {
                 name = taskDetails.TaskDescription,
-                description = $"Requested by: {taskDetails.RequestedBy}\n\n{taskDetails.Description}",
+                description = $"Requested by: {taskDetails.RequestedBy}\n\n{taskDetails.Description}\n\nOpen Email: {customUrl}",
                 status = MapStatus(taskDetails.Status),
                 due_date = ((DateTimeOffset)taskDetails.Date).ToUnixTimeMilliseconds(),
                 assignees = new[] { assigneeId },
-                // Include other custom fields if necessary
+                // ... any other task data ...
             };
 
             var json = JsonConvert.SerializeObject(taskData);
@@ -49,30 +57,7 @@ namespace EmailViewer
             }
 
             var taskInfo = JsonConvert.DeserializeAnonymousType(responseContent, new { id = "" });
-            string taskId = taskInfo.id;
-
-            // Attach the email file to the created task
-            await AttachFileToTask(taskId, emailPath);
-
-            return taskId;
-        }
-
-        private async Task AttachFileToTask(string taskId, string filePath)
-        {
-            using (var content = new MultipartFormDataContent())
-            {
-                var fileContent = new ByteArrayContent(File.ReadAllBytes(filePath));
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-                content.Add(fileContent, "attachment", Path.GetFileName(filePath));
-
-                var response = await _httpClient.PostAsync($"{BASE_URL}/task/{taskId}/attachment", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception($"ClickUp API error when attaching file: {response.StatusCode}, {responseContent}");
-                }
-            }
+            return taskInfo.id;
         }
 
         private string MapStatus(string status)
@@ -82,9 +67,9 @@ namespace EmailViewer
             {
                 case "À faire": return "to do";
                 case "En cours": return "in progress";
-                case "Fini":
-                case "Terminé": return "complete";
-                case "Bloqué": return "blocked";
+                case "Fini": return "finished";
+                case "Terminé": return "achevé";
+                case "Infos": return "infos";
                 default: return "open";
             }
         }
