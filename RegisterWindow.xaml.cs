@@ -2,7 +2,7 @@
 using System.Linq;
 using EmailViewer.Data;
 using EmailViewer.Models;
-using BCrypt.Net;
+using System.Text.RegularExpressions;
 
 namespace EmailViewer
 {
@@ -17,11 +17,8 @@ namespace EmailViewer
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
-            if (PasswordBox.Password != ConfirmPasswordBox.Password)
-            {
-                MessageBox.Show("Passwords do not match");
+            if (!ValidateInput())
                 return;
-            }
 
             if (_context.Users.Any(u => u.Email == EmailTextBox.Text))
             {
@@ -38,8 +35,32 @@ namespace EmailViewer
             _context.Users.Add(user);
             _context.SaveChanges();
 
+            MessageBox.Show("Registration successful!");
             DialogResult = true;
             Close();
+        }
+
+        private bool ValidateInput()
+        {
+            if (string.IsNullOrWhiteSpace(EmailTextBox.Text) || !Regex.IsMatch(EmailTextBox.Text, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                MessageBox.Show("Please enter a valid email address.");
+                return false;
+            }
+
+            if (PasswordBox.Password.Length < 8)
+            {
+                MessageBox.Show("Password must be at least 8 characters long.");
+                return false;
+            }
+
+            if (PasswordBox.Password != ConfirmPasswordBox.Password)
+            {
+                MessageBox.Show("Passwords do not match");
+                return false;
+            }
+
+            return true;
         }
     }
 }
