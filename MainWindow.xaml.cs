@@ -7,6 +7,8 @@ using System.IO;
 using System.Collections.ObjectModel;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using EmailViewer.Models;
 
 namespace EmailViewer
 {
@@ -20,10 +22,35 @@ namespace EmailViewer
         private string currentEmailPath;
         private ObservableCollection<string> availableTags;
         private ObservableCollection<string> selectedTags;
+        private ClickUpIntegration clickUpIntegration;
+        private string oneDriveBasePath;
+        private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
+        private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
+        private User currentUser;
 
-        public MainWindow()
+        // Default constructor for XAML
+        public MainWindow() : this(null, null) { }
+
+        // Constructor with email ID parameter
+        public MainWindow(string emailId) : this(null, emailId) { }
+
+        public MainWindow(User user, string emailId = null)
         {
             InitializeComponent();
+            currentUser = user;
+            CommonInitialization();
+ 
+            if (!string.IsNullOrEmpty(emailId))
+            {
+                OpenEmailFromId(emailId);
+            }
+            Logger.Log(emailId == null ? "J'ai ouvert sans parametre" : "J'ai ouvert avec parametre");
+        }
+
+
+
+        private void CommonInitialization()
+        {
             recentEmailsManager = new RecentEmailsManager();
             emailSearcher = new EmailSearcher();
             noteManager = new NoteManager();
@@ -32,7 +59,90 @@ namespace EmailViewer
             noteTagsComboBox.ItemsSource = availableTags;
             selectedTagsItemsControl.ItemsSource = selectedTags;
             Closing += MainWindow_Closing;
+            clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId);
+
+            // Use user settings if available
+            if (currentUser != null)
+            {
+                oneDriveBasePath = currentUser.OneDriveRootPath;
+                rootPath = currentUser.DefaultRootPath;
+                // Use other user properties as needed
+            }
+            else
+            {
+                // Fallback to default values or load from environment variables
+                oneDriveBasePath = @"C:\Users\User\OneDrive"; // Replace with your actual path
+                rootPath = Environment.GetEnvironmentVariable("DEFAULT_ROOT_PATH");
+            }
+
+            try
+            {
+                OneDriveIntegration.SetOneDriveRootPath(oneDriveBasePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error setting OneDrive root path: {ex.Message}");
+                Logger.Log($"Error setting OneDrive root path: {ex.Message}");
+            }
+
+            LoadEmailIdMap();
             LoadRecentEmails();
+        }
+
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            AuthManager.ClearAuthToken();
+            var loginWindow = new LoginWindow();
+            if (loginWindow.ShowDialog() == true)
+            {
+                currentUser = loginWindow.LoggedInUser;
+                // Reinitialize the main window with the new user
+                CommonInitialization();
+            }
+            else
+            {
+                // User cancelled login, close the application
+                Application.Current.Shutdown();
+            }
+        }
+
+        private void OpenEmailFromId(string emailId)
+        {
+            if (emailIdMap.TryGetValue(emailId, out string emailPath))
+            {
+                DisplayEmail(emailPath);
+            }
+            else
+            {
+                MessageBox.Show($"Email with ID {emailId} not found.");
+            }
+        }
+
+        private void LoadEmailIdMap()
+        {
+            if (File.Exists(EMAIL_ID_MAP_FILE))
+            {
+                string json = File.ReadAllText(EMAIL_ID_MAP_FILE);
+                emailIdMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            }
+        }
+
+        private void SaveEmailIdMap()
+        {
+            string json = JsonConvert.SerializeObject(emailIdMap);
+            File.WriteAllText(EMAIL_ID_MAP_FILE, json);
+        }
+
+        public string GetOrCreateEmailId(string emailPath)
+        {
+            string emailId = emailIdMap.FirstOrDefault(x => x.Value == emailPath).Key;
+            if (string.IsNullOrEmpty(emailId))
+            {
+                emailId = Guid.NewGuid().ToString("N");
+                emailIdMap[emailId] = emailPath;
+                SaveEmailIdMap();
+            }
+            return emailId;
         }
 
         private void ToggleSearchButton_Click(object sender, RoutedEventArgs e)
