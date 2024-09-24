@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 
 namespace EmailViewer
 {
@@ -20,10 +21,34 @@ namespace EmailViewer
         private string currentEmailPath;
         private ObservableCollection<string> availableTags;
         private ObservableCollection<string> selectedTags;
+        private ClickUpIntegration clickUpIntegration;
+        private string oneDriveBasePath;
+        private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
+        private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
 
+        // Default constructor for XAML
         public MainWindow()
         {
             InitializeComponent();
+            CommonInitialization();
+            Logger.Log("J'ai ouvert sans parametre");
+        }
+
+        // Constructor with email ID parameter
+        public MainWindow(string emailId)
+        {
+            InitializeComponent();
+            CommonInitialization();
+            Logger.Log("J'ai ouvert avec parametre");
+
+            if (!string.IsNullOrEmpty(emailId))
+            {
+                OpenEmailFromId(emailId);
+            }
+        }
+
+        private void CommonInitialization()
+        {
             recentEmailsManager = new RecentEmailsManager();
             emailSearcher = new EmailSearcher();
             noteManager = new NoteManager();
@@ -32,7 +57,61 @@ namespace EmailViewer
             noteTagsComboBox.ItemsSource = availableTags;
             selectedTagsItemsControl.ItemsSource = selectedTags;
             Closing += MainWindow_Closing;
+            clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId);
+
+            // Set OneDrive root path
+            string oneDriveRootPath = @"C:\Users\User\OneDrive"; // Replace with your actual path
+            try
+            {
+                OneDriveIntegration.SetOneDriveRootPath(oneDriveRootPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error setting OneDrive root path: {ex.Message}");
+                Logger.Log($"Error setting OneDrive root path: {ex.Message}");
+            }
+
+            LoadEmailIdMap();
             LoadRecentEmails();
+        }
+
+        private void OpenEmailFromId(string emailId)
+        {
+            if (emailIdMap.TryGetValue(emailId, out string emailPath))
+            {
+                DisplayEmail(emailPath);
+            }
+            else
+            {
+                MessageBox.Show($"Email with ID {emailId} not found.");
+            }
+        }
+
+        private void LoadEmailIdMap()
+        {
+            if (File.Exists(EMAIL_ID_MAP_FILE))
+            {
+                string json = File.ReadAllText(EMAIL_ID_MAP_FILE);
+                emailIdMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            }
+        }
+
+        private void SaveEmailIdMap()
+        {
+            string json = JsonConvert.SerializeObject(emailIdMap);
+            File.WriteAllText(EMAIL_ID_MAP_FILE, json);
+        }
+
+        public string GetOrCreateEmailId(string emailPath)
+        {
+            string emailId = emailIdMap.FirstOrDefault(x => x.Value == emailPath).Key;
+            if (string.IsNullOrEmpty(emailId))
+            {
+                emailId = Guid.NewGuid().ToString("N");
+                emailIdMap[emailId] = emailPath;
+                SaveEmailIdMap();
+            }
+            return emailId;
         }
 
         private void ToggleSearchButton_Click(object sender, RoutedEventArgs e)
@@ -197,6 +276,7 @@ namespace EmailViewer
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"Attempting to display email: {filePath}");
                 var message = MimeMessage.Load(filePath);
                 emailContentRichTextBox.Document.Blocks.Clear();
 
@@ -216,6 +296,7 @@ namespace EmailViewer
 
                 emailContentRichTextBox.Document.Blocks.Add(bodyPara);
 
+                string emailId = GetOrCreateEmailId(filePath);
                 recentEmailsManager.AddEmail(filePath);
                 LoadRecentEmails();
 
@@ -224,6 +305,7 @@ namespace EmailViewer
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error displaying email: {ex.Message}");
                 MessageBox.Show($"Error loading email: {ex.Message}");
             }
         }
@@ -319,26 +401,86 @@ namespace EmailViewer
             notesListView.SelectedItem = null;
         }
 
-        private void CreateTaskButton_Click(object sender, RoutedEventArgs e)
+        //private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (string.IsNullOrEmpty(currentEmailPath))
+        //    {
+        //        MessageBox.Show("Veuillez sélectionner un email d'abord.");
+        //        return;
+        //    }
+
+        //    try
+        //    {
+        //        // Comment out OneDrive-related code
+        //        /*
+        //        // Ensure the email is in the OneDrive folder
+        //        if (!currentEmailPath.StartsWith(oneDriveBasePath))
+        //        {
+        //            MessageBox.Show("L'email doit être dans un dossier OneDrive synchronisé.");
+        //            return;
+        //        }
+
+        //        // Generate a relative path for the email within OneDrive
+        //        string relativePath = currentEmailPath.Substring(oneDriveBasePath.Length).TrimStart('\\', '/');
+        //        string oneDriveLink = $"https://onedrive.live.com/edit.aspx?resid=YOUR_RESOURCE_ID&cid=YOUR_CID&path=/{Uri.EscapeDataString(relativePath)}";
+        //        */
+
+        //        // For testing, use the local file path instead of OneDrive link
+        //        string localEmailLink = $"file://{Uri.EscapeDataString(currentEmailPath)}";
+        //        Console.WriteLine($"Local Email Link: {localEmailLink}");
+
+        //        var taskWindow = new TaskCreationWindow(currentEmailPath);
+        //        if (taskWindow.ShowDialog() == true)
+        //        {
+        //            string clickUpListId = "901506764736";
+        //            Console.WriteLine($"ClickUp List ID: {clickUpListId}");
+        //            Console.WriteLine($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
+
+        //            string taskId = await clickUpIntegration.CreateTaskAsync(clickUpListId, taskWindow.TaskDetails, localEmailLink);
+
+        //            MessageBox.Show($"Tâche créée avec succès dans ClickUp! ID de la tâche: {taskId}");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Erreur détaillée lors de la création de la tâche : {ex.Message}\n\nStack Trace: {ex.StackTrace}");
+        //    }
+        //}
+
+        private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(currentEmailPath))
             {
                 MessageBox.Show("Veuillez sélectionner un email d'abord.");
                 return;
             }
-
-            string excelFilePath = SelectExcelFile();
-            if (string.IsNullOrEmpty(excelFilePath))
+            try
             {
-                return; // User canceled file selection
+                Logger.Log($"Current Email Path: {currentEmailPath}");
+                var taskWindow = new TaskCreationWindow(currentEmailPath);
+                if (taskWindow.ShowDialog() == true)
+                {
+                    string clickUpListId = Environment.GetEnvironmentVariable("CLICKUP_LISTID");
+                    Logger.Log($"ClickUp List ID: {clickUpListId}");
+                    Logger.Log($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
+
+                    // Get the email ID
+                    string emailId = GetOrCreateEmailId(currentEmailPath);
+
+                    string taskId = await clickUpIntegration.CreateTaskAsync(clickUpListId, taskWindow.TaskDetails, currentEmailPath);
+                    Logger.Log($"Task created successfully. Task ID: {taskId}");
+                    MessageBox.Show($"Tâche créée avec succès dans ClickUp! ID de la tâche: {taskId}");
+                }
             }
-
-            var taskWindow = new TaskCreationWindow(currentEmailPath);
-            if (taskWindow.ShowDialog() == true)
+            catch (Exception ex)
             {
-                CreateExcelTask(taskWindow.TaskDetails, excelFilePath);
+                Logger.Log($"Error creating task: {ex.Message}\n\nStack Trace: {ex.StackTrace}");
+                MessageBox.Show($"Erreur détaillée lors de la création de la tâche : {ex.Message}\n\nStack Trace: {ex.StackTrace}");
             }
         }
+
+
+
 
         private string SelectExcelFile()
         {
@@ -411,6 +553,7 @@ namespace EmailViewer
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            SaveEmailIdMap();
             // The RecentFoldersManager will save the folders when the application closes
         }
     }
