@@ -18,6 +18,7 @@
             <StackPanel Grid.Row="0">
                 <Button Content="Open Root Folder" Click="OpenRootFolderButton_Click" Margin="5"/>
                 <Button Content="Profile" Click="ProfileButton_Click" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"/>
+                <Button Content="Logout" Click="LogoutButton_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,10,0"/>
                 <TextBlock Text="Folder Structure:" Margin="5,10,5,0"/>
             </StackPanel>
             <TreeView x:Name="folderTreeView" Grid.Row="1" Margin="5" SelectedItemChanged="FolderTreeView_SelectedItemChanged"/>

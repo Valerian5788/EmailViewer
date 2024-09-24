@@ -77,7 +77,7 @@ namespace EmailViewer
 
             try
             {
-                OneDriveIntegration.SetOneDriveRootPath(oneDriveBasePath);
+                OneDriveIntegration.SetOneDriveRootPath(currentUser.OneDriveRootPath);
             }
             catch (Exception ex)
             {
@@ -491,7 +491,7 @@ namespace EmailViewer
                 var taskWindow = new TaskCreationWindow(currentEmailPath);
                 if (taskWindow.ShowDialog() == true)
                 {
-                    string clickUpListId = Environment.GetEnvironmentVariable("CLICKUP_LISTID");
+                    string clickUpListId = currentUser.ClickUpListId;
                     Logger.Log($"ClickUp List ID: {clickUpListId}");
                     Logger.Log($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
 
@@ -579,6 +579,18 @@ namespace EmailViewer
                     excelApp.Quit();
                     Marshal.ReleaseComObject(excelApp);
                 }
+            }
+        }
+
+        private void ProfileButton_Click(object sender, RoutedEventArgs e)
+        {
+            var profileWindow = new ProfileWindow(currentUser);
+            if (profileWindow.ShowDialog() == true)
+            {
+                // Update currentUser with the possibly modified User object
+                currentUser = profileWindow.User;
+                // You might need to update other parts of your application here
+                CommonInitialization();
             }
         }
 
