@@ -10,7 +10,7 @@ namespace EmailViewer
         public TaskDetails TaskDetails { get; private set; }
         private Dictionary<string, string> userIdMap = new Dictionary<string, string>
         {
-            { "David", "2667038" }
+            { "David", Environment.GetEnvironmentVariable("CLICKUP_DAVID_USERID") }
             // Add more users here as needed
         };
 
