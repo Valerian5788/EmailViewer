@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DotNetEnv;
+using System;
+using System.IO;
 using System.Windows;
 
 namespace EmailViewer
@@ -8,6 +10,15 @@ namespace EmailViewer
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            string envFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "secretkeys.env");
+            DotNetEnv.Env.Load(envFilePath);
+
+            // Optionally, verify that the variables are loaded
+            string apiKey = Environment.GetEnvironmentVariable("CLICKUP_APIKEY");
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                MessageBox.Show("Failed to load CLICKUP_APIKEY from environment variables.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
             string emailId = null;
 

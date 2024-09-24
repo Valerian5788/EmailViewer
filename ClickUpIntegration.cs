@@ -10,7 +10,7 @@ namespace EmailViewer
     public class ClickUpIntegration
     {
         private readonly HttpClient _httpClient;
-        private const string API_KEY = "pk_2667038_JP6JYQUO0SU5EEBAAT3TV9XXTV0MBLZJ";
+        private string API_KEY => Environment.GetEnvironmentVariable("CLICKUP_APIKEY");
         private const string BASE_URL = "https://api.clickup.com/api/v2";
         private Func<string, string> getOrCreateEmailId; // Function to get or create email ID
 

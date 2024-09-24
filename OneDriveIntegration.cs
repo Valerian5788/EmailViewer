@@ -7,7 +7,7 @@ namespace EmailViewer
     {
         private static string oneDriveRootPath;
         private const string ONEDRIVE_BASE_URL = "https://1drv.ms/u/s!";
-        private const string RESOURCE_ID = "Aos4jtA_FWlQ"; // This should be your actual resource ID
+        private static string RESOURCE_ID => Environment.GetEnvironmentVariable("ONEDRIVE_RESSOURCEID"); 
 
         public static void SetOneDriveRootPath(string path)
         {

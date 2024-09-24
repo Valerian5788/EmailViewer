@@ -460,7 +460,7 @@ namespace EmailViewer
                 var taskWindow = new TaskCreationWindow(currentEmailPath);
                 if (taskWindow.ShowDialog() == true)
                 {
-                    string clickUpListId = "901506764736";
+                    string clickUpListId = Environment.GetEnvironmentVariable("CLICKUP_LISTID");
                     Logger.Log($"ClickUp List ID: {clickUpListId}");
                     Logger.Log($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
 
