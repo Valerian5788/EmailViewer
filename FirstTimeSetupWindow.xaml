@@ -1,0 +1,30 @@
+﻿<Window x:Class="EmailViewer.FirstTimeSetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="First Time Setup" Height="500" Width="450">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="Welcome! Please complete the initial setup." 
+                   FontWeight="Bold" FontSize="16" Margin="0,0,0,20"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="OneDrive Root Path:" Margin="0,0,0,5"/>
+                <TextBox x:Name="OneDriveRootPathTextBox" Margin="0,0,0,15"/>
+                <TextBlock Text="Default Root Path:" Margin="0,0,0,5"/>
+                <TextBox x:Name="DefaultRootPathTextBox" Margin="0,0,0,15"/>
+                <TextBlock Text="ClickUp API Key:" Margin="0,0,0,5"/>
+                <TextBox x:Name="ClickUpApiKeyTextBox" Margin="0,0,0,15"/>
+                <TextBlock Text="ClickUp List ID:" Margin="0,0,0,5"/>
+                <TextBox x:Name="ClickUpListIdTextBox" Margin="0,0,0,15"/>
+                <TextBlock Text="ClickUp User ID:" Margin="0,0,0,5"/>
+                <TextBox x:Name="ClickUpUserIdTextBox" Margin="0,0,0,15"/>
+            </StackPanel>
+        </ScrollViewer>
+        <Button Grid.Row="2" Content="Save and Continue" Click="SaveButton_Click" 
+                HorizontalAlignment="Right" Padding="15,5" Margin="0,20,0,0"/>
+    </Grid>
+</Window>

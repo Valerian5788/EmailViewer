@@ -5,7 +5,6 @@ using System.Windows.Documents;
 using Microsoft.Win32;
 using System.IO;
 using System.Collections.ObjectModel;
-using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using EmailViewer.Models;
@@ -529,58 +528,58 @@ namespace EmailViewer
             return null;
         }
 
-        private void CreateExcelTask(TaskDetails taskDetails, string excelFilePath)
-        {
-            Excel.Application excelApp = null;
-            Excel.Workbook workbook = null;
-            Excel.Worksheet worksheet = null;
+        //private void CreateExcelTask(TaskDetails taskDetails, string excelFilePath)
+        //{
+        //    Excel.Application excelApp = null;
+        //    Excel.Workbook workbook = null;
+        //    Excel.Worksheet worksheet = null;
 
-            try
-            {
-                excelApp = new Excel.Application();
-                excelApp.DisplayAlerts = false; // Disable alerts
-                workbook = excelApp.Workbooks.Open(excelFilePath, ReadOnly: false, Editable: true);
-                worksheet = workbook.Worksheets["To Do"]; // Use the "To Do" sheet
+        //    try
+        //    {
+        //        excelApp = new Excel.Application();
+        //        excelApp.DisplayAlerts = false; // Disable alerts
+        //        workbook = excelApp.Workbooks.Open(excelFilePath, ReadOnly: false, Editable: true);
+        //        worksheet = workbook.Worksheets["To Do"]; // Use the "To Do" sheet
 
-                // Find the next available row starting from row 5
-                int newRow = 5;
-                while (!string.IsNullOrWhiteSpace(Convert.ToString(worksheet.Cells[newRow, 1].Value)))
-                {
-                    newRow++;
-                }
+        //        // Find the next available row starting from row 5
+        //        int newRow = 5;
+        //        while (!string.IsNullOrWhiteSpace(Convert.ToString(worksheet.Cells[newRow, 1].Value)))
+        //        {
+        //            newRow++;
+        //        }
 
-                worksheet.Cells[newRow, 1] = taskDetails.Date;
-                worksheet.Cells[newRow, 2] = taskDetails.RequestedBy;
-                worksheet.Cells[newRow, 3] = taskDetails.TaskDescription;
-                worksheet.Cells[newRow, 4] = taskDetails.Document;
-                worksheet.Cells[newRow, 5] = taskDetails.AssignedTo;
-                worksheet.Cells[newRow, 6] = ""; // Leave column F empty
-                worksheet.Cells[newRow, 7] = taskDetails.Id.ToString(); // Add GUID to column G
-                worksheet.Cells[newRow, 8] = taskDetails.Status;
+        //        worksheet.Cells[newRow, 1] = taskDetails.Date;
+        //        worksheet.Cells[newRow, 2] = taskDetails.RequestedBy;
+        //        worksheet.Cells[newRow, 3] = taskDetails.TaskDescription;
+        //        worksheet.Cells[newRow, 4] = taskDetails.Document;
+        //        worksheet.Cells[newRow, 5] = taskDetails.AssignedTo;
+        //        worksheet.Cells[newRow, 6] = ""; // Leave column F empty
+        //        worksheet.Cells[newRow, 7] = taskDetails.Id.ToString(); // Add GUID to column G
+        //        worksheet.Cells[newRow, 8] = taskDetails.Status;
 
-                workbook.Save();
-                MessageBox.Show("Tâche créée avec succès !");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erreur lors de la création de la tâche : {ex.Message}");
-            }
-            finally
-            {
-                if (excelApp != null) excelApp.DisplayAlerts = true; // Re-enable alerts
-                if (worksheet != null) Marshal.ReleaseComObject(worksheet);
-                if (workbook != null)
-                {
-                    workbook.Close(true);
-                    Marshal.ReleaseComObject(workbook);
-                }
-                if (excelApp != null)
-                {
-                    excelApp.Quit();
-                    Marshal.ReleaseComObject(excelApp);
-                }
-            }
-        }
+        //        workbook.Save();
+        //        MessageBox.Show("Tâche créée avec succès !");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"Erreur lors de la création de la tâche : {ex.Message}");
+        //    }
+        //    finally
+        //    {
+        //        if (excelApp != null) excelApp.DisplayAlerts = true; // Re-enable alerts
+        //        if (worksheet != null) Marshal.ReleaseComObject(worksheet);
+        //        if (workbook != null)
+        //        {
+        //            workbook.Close(true);
+        //            Marshal.ReleaseComObject(workbook);
+        //        }
+        //        if (excelApp != null)
+        //        {
+        //            excelApp.Quit();
+        //            Marshal.ReleaseComObject(excelApp);
+        //        }
+        //    }
+        //}
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)
         {

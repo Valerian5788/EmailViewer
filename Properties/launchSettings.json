@@ -2,7 +2,6 @@
   "profiles": {
     "Email Viewer": {
       "commandName": "Project",
-      "commandLineArgs": "--emailId b2bb09eb31e44a5f993f7ed99f1eb96a",
       "workingDirectory": "C:\\Users\\User\\Documents\\Email Viewer\\EmailViewer"
     }
   }

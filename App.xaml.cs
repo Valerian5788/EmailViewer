@@ -14,6 +14,7 @@ namespace EmailViewer
             base.OnStartup(e);
             string envFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "secretkeys.env");
             DotNetEnv.Env.Load(envFilePath);
+            VerifyEnvironmentVariables();
 
             // Verify that the variables are loaded
             string apiKey = Environment.GetEnvironmentVariable("CLICKUP_APIKEY");
@@ -105,6 +106,22 @@ namespace EmailViewer
             }
             Logger.Log("Auto-login failed or no token found");
             return null;
+        }
+
+        private void VerifyEnvironmentVariables()
+        {
+            var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+            var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+
+            if (string.IsNullOrEmpty(clientId))
+            {
+                Logger.Log("GOOGLE_CLIENT_ID is not set in the environment variables.");
+            }
+
+            if (string.IsNullOrEmpty(clientSecret))
+            {
+                Logger.Log("GOOGLE_CLIENT_SECRET is not set in the environment variables.");
+            }
         }
     }
 }

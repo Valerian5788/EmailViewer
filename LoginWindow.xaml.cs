@@ -12,14 +12,15 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth;
 using Google.Apis.Util.Store;
 using Google.Apis.Util;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmailViewer
 {
     public partial class LoginWindow : Window
     {
         private readonly AppDbContext _context = new AppDbContext();
-        private string ClientId => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
-        private string ClientSecret => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+        private static string ClientId => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+        private static string ClientSecret => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
         public User LoggedInUser { get; private set; }
 
         // Initialize RateLimiter: 3 attempts per 5 minutes
@@ -48,12 +49,6 @@ namespace EmailViewer
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_rateLimiter.ShouldAllow(EmailTextBox.Text))
-            {
-                MessageBox.Show("Too many login attempts. Please try again later.");
-                return;
-            }
-
             var user = _context.Users.FirstOrDefault(u => u.Email == EmailTextBox.Text);
             if (user != null && BCrypt.Net.BCrypt.Verify(PasswordBox.Password, user.PasswordHash))
             {
@@ -69,12 +64,20 @@ namespace EmailViewer
         {
             if (!_rateLimiter.ShouldAllow("GoogleLogin"))
             {
+                Logger.Log("Too many login attempts. Please try again later.");
                 MessageBox.Show("Too many login attempts. Please try again later.");
                 return;
             }
 
             try
             {
+                if (string.IsNullOrEmpty(ClientId) || string.IsNullOrEmpty(ClientSecret))
+                {
+                    Logger.Log("Google Client ID or Client Secret is missing. Please check your environment variables.");
+                    MessageBox.Show("Google Client ID or Client Secret is missing. Please check your application settings.");
+                    return;
+                }
+
                 var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
                 {
                     ClientSecrets = new ClientSecrets
@@ -86,29 +89,63 @@ namespace EmailViewer
                     DataStore = new FileDataStore("GoogleAuth")
                 });
 
-                var token = await flow.LoadTokenAsync("user", CancellationToken.None);
+                await flow.DeleteTokenAsync("user", CancellationToken.None);
 
-                if (token == null || token.IsExpired(SystemClock.Default))
+                var credential = await new Google.Apis.Auth.OAuth2.AuthorizationCodeInstalledApp(flow, new LocalServerCodeReceiver()).AuthorizeAsync("user", CancellationToken.None);
+
+                if (credential == null || string.IsNullOrEmpty(credential.Token.IdToken))
                 {
-                    var credential = await new Google.Apis.Auth.OAuth2.AuthorizationCodeInstalledApp(flow, new LocalServerCodeReceiver()).AuthorizeAsync("user", CancellationToken.None);
-                    token = credential.Token;
+                    Logger.Log("Failed to obtain Google credential.");
+                    MessageBox.Show("Failed to authenticate with Google. Please try again.");
+                    return;
                 }
 
-                var userInfo = await GoogleJsonWebSignature.ValidateAsync(token.IdToken);
-                var user = _context.Users.FirstOrDefault(u => u.Email == userInfo.Email);
+                var userInfo = await GoogleJsonWebSignature.ValidateAsync(credential.Token.IdToken);
+                Logger.Log($"Successfully authenticated Google user: {userInfo.Email}");
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userInfo.Email);
 
                 if (user == null)
                 {
-                    user = new User { Email = userInfo.Email };
+                    user = new User
+                    {
+                        Email = userInfo.Email,
+                        GoogleId = userInfo.Subject,
+                    };
                     _context.Users.Add(user);
-                    _context.SaveChanges();
+                }
+                else if (string.IsNullOrEmpty(user.GoogleId))
+                {
+                    user.GoogleId = userInfo.Subject;
+                }
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    Logger.Log($"User processed for Google account: {userInfo.Email}");
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    Logger.Log($"Database update error: {dbEx.Message}");
+                    Logger.Log($"Inner exception: {dbEx.InnerException?.Message}");
+                    MessageBox.Show("An error occurred while saving user data. Please try again.");
+                    return;
                 }
 
                 LoginSuccessful(user);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Google login failed: {ex.Message}");
+                Logger.Log($"Google login failed: {ex.Message}");
+                Logger.Log($"Exception type: {ex.GetType().Name}");
+                Logger.Log($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Logger.Log($"Inner exception: {ex.InnerException.Message}");
+                    Logger.Log($"Inner exception type: {ex.InnerException.GetType().Name}");
+                    Logger.Log($"Inner exception stack trace: {ex.InnerException.StackTrace}");
+                }
+                MessageBox.Show($"An unexpected error occurred during Google login: {ex.Message}. Please try again.");
             }
         }
 
@@ -121,9 +158,46 @@ namespace EmailViewer
                 _context.SaveChanges();
                 AuthManager.SaveAuthToken(user.RememberMeToken);
             }
-            DialogResult = true;
-            Close();
+
+            if (IsFirstTimeSetupNeeded(user))
+            {
+                ShowFirstTimeSetupWindow(user);
+            }
+            else
+            {
+                OpenMainWindow(user);
+            }
         }
+
+        private bool IsFirstTimeSetupNeeded(User user)
+        {
+            return string.IsNullOrEmpty(user.OneDriveRootPath) ||
+                   string.IsNullOrEmpty(user.DefaultRootPath) ||
+                   string.IsNullOrEmpty(user.ClickUpApiKey) ||
+                   string.IsNullOrEmpty(user.ClickUpListId) ||
+                   string.IsNullOrEmpty(user.ClickUpUserId);
+        }
+
+        private void ShowFirstTimeSetupWindow(User user)
+        {
+            var setupWindow = new FirstTimeSetupWindow(user);
+            if (setupWindow.ShowDialog() == true)
+            {
+                OpenMainWindow(user);
+            }
+            else
+            {
+                MessageBox.Show("Setup cancelled. You need to complete the setup to use the application.");
+            }
+        }
+
+        private void OpenMainWindow(User user)
+        {
+            var mainWindow = new MainWindow(user);
+            mainWindow.Show();
+            this.Close();
+        }
+
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {

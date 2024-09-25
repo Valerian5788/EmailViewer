@@ -9,7 +9,20 @@ namespace EmailViewer.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("YOUR_CONNECTION_STRING_HERE");
+            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=EmailViewerDB;Trusted_Connection=True;");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.GoogleId).IsUnique().HasFilter("[GoogleId] IS NOT NULL");
+            });
         }
     }
 }
+
+

@@ -3,6 +3,7 @@ using System.Linq;
 using EmailViewer.Data;
 using EmailViewer.Models;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmailViewer
 {
@@ -15,29 +16,38 @@ namespace EmailViewer
             InitializeComponent();
         }
 
-        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!ValidateInput())
-                return;
-
-            if (_context.Users.Any(u => u.Email == EmailTextBox.Text))
+            try
             {
-                MessageBox.Show("Email already in use");
-                return;
+                if (!ValidateInput())
+                    return;
+
+                if (await _context.Users.AnyAsync(u => u.Email == EmailTextBox.Text))
+                {
+                    MessageBox.Show("Email already in use");
+                    return;
+                }
+
+                var user = new User
+                {
+                    Email = EmailTextBox.Text,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(PasswordBox.Password)
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                MessageBox.Show("Registration successful!");
+                DialogResult = true;
+                Close();
             }
-
-            var user = new User
+            catch (Exception ex)
             {
-                Email = EmailTextBox.Text,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(PasswordBox.Password)
-            };
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            MessageBox.Show("Registration successful!");
-            DialogResult = true;
-            Close();
+                MessageBox.Show($"An error occurred during registration: {ex.Message}");
+                // Log the exception
+                Logger.Log($"Registration error: {ex}");
+            }
         }
 
         private bool ValidateInput()
