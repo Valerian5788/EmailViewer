@@ -85,7 +85,7 @@ namespace EmailViewer
                         ClientId = ClientId,
                         ClientSecret = ClientSecret
                     },
-                    Scopes = new[] { "email", "profile" },
+                    Scopes = new[] { "email", "profile", "https://www.googleapis.com/auth/calendar.events" },
                     DataStore = new FileDataStore("GoogleAuth")
                 });
 

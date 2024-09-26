@@ -8,6 +8,12 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using EmailViewer.Models;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using System.Diagnostics;
 
 namespace EmailViewer
 {
@@ -26,6 +32,7 @@ namespace EmailViewer
         private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
         private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
         private User currentUser;
+        private Google.Apis.Calendar.v3.CalendarService calendarService;
 
         // Default constructor for XAML
         public MainWindow() : this(null, null) { }
@@ -38,7 +45,10 @@ namespace EmailViewer
             InitializeComponent();
             currentUser = user;
             CommonInitialization();
- 
+
+            // Initialize calendar service
+            _ = InitializeCalendarService();  // Fire and forget
+
             if (!string.IsNullOrEmpty(emailId))
             {
                 OpenEmailFromId(emailId);
@@ -534,7 +544,84 @@ namespace EmailViewer
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveEmailIdMap();
-            // The RecentFoldersManager will save the folders when the application closes
+        }
+
+        private async Task InitializeCalendarService()
+        {
+            if (calendarService != null) return; // Already initialized
+
+            UserCredential credential;
+            using (var stream = new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+            {
+                string credPath = "token.json";
+                credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.FromStream(stream).Secrets,
+                    new[] { Google.Apis.Calendar.v3.CalendarService.Scope.CalendarEvents },
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(credPath, true));
+            }
+            calendarService = new Google.Apis.Calendar.v3.CalendarService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Email Viewer",
+            });
+        }
+
+        private async void QuickAddToCalendar_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentEmailPath))
+            {
+                MessageBox.Show("Please select an email first.");
+                return;
+            }
+
+            var message = MimeMessage.Load(currentEmailPath);
+            string subject = message.Subject;
+            string body = message.TextBody;
+
+            string encodedSubject = Uri.EscapeDataString(subject);
+            string encodedBody = Uri.EscapeDataString(body);
+
+            string url = $"https://www.google.com/calendar/render?action=TEMPLATE&text={encodedSubject}&details={encodedBody}";
+
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+
+        private async void CreateDetailedEvent_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentEmailPath))
+            {
+                MessageBox.Show("Please select an email first.");
+                return;
+            }
+
+            await InitializeCalendarService(); // Ensure calendar service is initialized
+
+            var message = MimeMessage.Load(currentEmailPath);
+            var eventWindow = new EventCreationWindow(message.Subject, message.TextBody);
+
+            if (eventWindow.ShowDialog() == true)
+            {
+                try
+                {
+                    var newEvent = new Google.Apis.Calendar.v3.Data.Event
+                    {
+                        Summary = eventWindow.EventTitle,
+                        Description = eventWindow.EventDescription,
+                        Start = new Google.Apis.Calendar.v3.Data.EventDateTime { DateTime = eventWindow.StartDateTime },
+                        End = new Google.Apis.Calendar.v3.Data.EventDateTime { DateTime = eventWindow.EndDateTime },
+                    };
+
+                    var createdEvent = await calendarService.Events.Insert(newEvent, "primary").ExecuteAsync();
+                    MessageBox.Show($"Event created: {createdEvent.HtmlLink}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error creating event: {ex.Message}");
+                    Logger.Log($"Error creating calendar event: {ex}");
+                }
+            }
         }
     }
 }
