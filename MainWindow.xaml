@@ -120,26 +120,7 @@
                     </GridView>
                 </ListView.View>
             </ListView>
-            <StackPanel Grid.Row="2">
-                <TextBox x:Name="noteTitleTextBox" Margin="0,0,0,5" ToolTip="Enter note title"/>
-                <TextBox x:Name="noteContentTextBox" Height="100" Margin="0,0,0,5" AcceptsReturn="True" TextWrapping="Wrap"/>
-                <ComboBox x:Name="noteTagsComboBox" Margin="0,0,0,5" IsEditable="True" ToolTip="Select or enter tags"/>
-                <Button Content="Add Tag" Click="AddTagButton_Click" Margin="0,0,0,5" Padding="5,3"/>
-                <ItemsControl x:Name="selectedTagsItemsControl" Margin="0,0,0,5">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock Text="{Binding}" Margin="0,0,5,0"/>
-                                <Button Content="X" Click="RemoveTagButton_Click" Tag="{Binding}" Padding="3,0"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Button Content="Add/Update Note" Click="AddUpdateNoteButton_Click" Margin="0,0,0,5" Padding="5,3"/>
-                <Button Content="Delete Note" Click="DeleteNoteButton_Click" Margin="0,0,0,5" Padding="5,3"/>
-                <TextBox x:Name="noteSearchTextBox" Margin="0,0,0,5" ToolTip="Search notes"/>
-                <Button Content="Search Notes" Click="SearchNotesButton_Click" Padding="5,3"/>
-            </StackPanel>
+            <Button Content="Add Note" Grid.Row="2" Click="AddNoteButton_Click" Padding="5,3"/>
         </Grid>
     </Grid>
 </Window>

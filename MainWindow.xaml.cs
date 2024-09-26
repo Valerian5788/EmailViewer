@@ -55,8 +55,6 @@ namespace EmailViewer
             noteManager = new NoteManager();
             availableTags = new ObservableCollection<string> { "Urgent", "To Do", "To Treat" };
             selectedTags = new ObservableCollection<string>();
-            noteTagsComboBox.ItemsSource = availableTags;
-            selectedTagsItemsControl.ItemsSource = selectedTags;
             Closing += MainWindow_Closing;
             clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId);
 
@@ -158,27 +156,6 @@ namespace EmailViewer
             }
         }
 
-        private void AddTagButton_Click(object sender, RoutedEventArgs e)
-        {
-            string newTag = noteTagsComboBox.Text.Trim();
-            if (!string.IsNullOrEmpty(newTag) && !selectedTags.Contains(newTag))
-            {
-                selectedTags.Add(newTag);
-                if (!availableTags.Contains(newTag))
-                {
-                    availableTags.Add(newTag);
-                }
-                noteTagsComboBox.Text = "";
-            }
-        }
-
-        private void RemoveTagButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is string tag)
-            {
-                selectedTags.Remove(tag);
-            }
-        }
 
         private void LoadRecentEmails()
         {
@@ -352,6 +329,34 @@ namespace EmailViewer
             }
         }
 
+        private void AddNoteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentEmailPath))
+            {
+                MessageBox.Show("Please select an email first.");
+                return;
+            }
+
+            var noteWindow = new NoteWindow(currentEmailPath);
+            if (noteWindow.ShowDialog() == true)
+            {
+                LoadNotesForCurrentEmail();
+            }
+        }
+
+        private void NotesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (notesListView.SelectedItem is Note selectedNote)
+            {
+                var noteWindow = new NoteWindow(currentEmailPath, selectedNote);
+                if (noteWindow.ShowDialog() == true)
+                {
+                    LoadNotesForCurrentEmail();
+                }
+                notesListView.SelectedItem = null;
+            }
+        }
+
         private void LoadNotesForCurrentEmail()
         {
             if (!string.IsNullOrEmpty(currentEmailPath))
@@ -361,75 +366,8 @@ namespace EmailViewer
             }
         }
 
-        private void NotesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (notesListView.SelectedItem is Note selectedNote)
-            {
-                noteTitleTextBox.Text = selectedNote.Title;
-                noteContentTextBox.Text = selectedNote.Content;
-                selectedTags.Clear();
-                foreach (var tag in selectedNote.Tags)
-                {
-                    selectedTags.Add(tag);
-                }
-            }
-        }
 
-        private void AddUpdateNoteButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(currentEmailPath))
-            {
-                MessageBox.Show("Please select an email first.");
-                return;
-            }
 
-            string title = noteTitleTextBox.Text;
-            string content = noteContentTextBox.Text;
-            List<string> tags = selectedTags.ToList();
-
-            if (notesListView.SelectedItem is Note selectedNote)
-            {
-                noteManager.UpdateNote(selectedNote.Id, title, content, tags);
-            }
-            else
-            {
-                noteManager.AddNote(currentEmailPath, title, content, tags);
-            }
-
-            LoadNotesForCurrentEmail();
-            ClearNoteInputs();
-        }
-
-        private void DeleteNoteButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (notesListView.SelectedItem is Note selectedNote)
-            {
-                noteManager.DeleteNote(selectedNote.Id);
-                LoadNotesForCurrentEmail();
-                ClearNoteInputs();
-            }
-            else
-            {
-                MessageBox.Show("Please select a note to delete.");
-            }
-        }
-
-        private void SearchNotesButton_Click(object sender, RoutedEventArgs e)
-        {
-            string searchTerm = noteSearchTextBox.Text;
-            List<string> tags = selectedTags.ToList(); // Use selectedTags instead of noteTagsTextBox
-
-            var searchResults = noteManager.SearchNotes(searchTerm, tags);
-            notesListView.ItemsSource = searchResults;
-        }
-
-        private void ClearNoteInputs()
-        {
-            noteTitleTextBox.Clear();
-            noteContentTextBox.Clear();
-            selectedTags.Clear();
-            notesListView.SelectedItem = null;
-        }
 
         //private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
         //{
