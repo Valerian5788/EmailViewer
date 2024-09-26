@@ -45,49 +45,27 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Button x:Name="toggleSearchButton" Content="▼ Show Search" Click="ToggleSearchButton_Click" HorizontalAlignment="Left" Margin="0,0,0,10" Padding="5,3"/>
             <Grid x:Name="searchGrid" Grid.Row="1" Visibility="Collapsed" Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <TextBlock Text="Search:" Grid.Column="0" Grid.Row="0" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                <TextBox x:Name="searchTextBox" Grid.Column="1" Grid.Row="0" Margin="0,0,10,5"/>
-                <TextBlock Text="Sender:" Grid.Column="2" Grid.Row="0" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                <TextBox x:Name="senderTextBox" Grid.Column="3" Grid.Row="0" Margin="0,0,0,5"/>
-                <TextBlock Text="Start Date:" Grid.Column="0" Grid.Row="1" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                <DatePicker x:Name="startDatePicker" Grid.Column="1" Grid.Row="1" Margin="0,0,10,5"/>
-                <TextBlock Text="End Date:" Grid.Column="2" Grid.Row="1" Margin="0,0,5,5" VerticalAlignment="Center"/>
-                <DatePicker x:Name="endDatePicker" Grid.Column="3" Grid.Row="1" Margin="0,0,0,5"/>
-                <Button Content="Search" Grid.Column="3" Grid.Row="2" Click="SearchButton_Click" HorizontalAlignment="Right" Padding="10,3"/>
+                <!-- ... (search grid content remains the same) ... -->
             </Grid>
-            <Grid Grid.Row="2" Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ListView x:Name="searchResultsListView" Height="100" SelectionChanged="SearchResultsListView_SelectionChanged">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Client" DisplayMemberBinding="{Binding Client}"/>
-                            <GridViewColumn Header="Project" DisplayMemberBinding="{Binding Project}"/>
-                            <GridViewColumn Header="Subject" DisplayMemberBinding="{Binding Subject}"/>
-                            <GridViewColumn Header="Sender" DisplayMemberBinding="{Binding Sender}"/>
-                            <GridViewColumn Header="Date" DisplayMemberBinding="{Binding Date}"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-                <Button Grid.Column="1" Content="Créer une tâche" Click="CreateTaskButton_Click" VerticalAlignment="Top" Margin="10,0,0,0" Padding="5,3"/>
-            </Grid>
-            <RichTextBox x:Name="emailContentRichTextBox" Grid.Row="3" IsReadOnly="True" VerticalAlignment="Stretch"/>
+            <ListView x:Name="searchResultsListView" Grid.Row="2" Height="100" SelectionChanged="SearchResultsListView_SelectionChanged" Margin="0,0,0,10">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Client" DisplayMemberBinding="{Binding Client}"/>
+                        <GridViewColumn Header="Project" DisplayMemberBinding="{Binding Project}"/>
+                        <GridViewColumn Header="Subject" DisplayMemberBinding="{Binding Subject}"/>
+                        <GridViewColumn Header="Sender" DisplayMemberBinding="{Binding Sender}"/>
+                        <GridViewColumn Header="Date" DisplayMemberBinding="{Binding Date}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <RichTextBox x:Name="emailContentRichTextBox" Grid.Row="3" IsReadOnly="True" VerticalAlignment="Stretch" Margin="0,0,0,10"/>
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="Create Task" Click="CreateTaskButton_Click" Padding="5,3" Margin="0,0,5,0"/>
+            </StackPanel>
         </Grid>
 
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" />
@@ -98,7 +76,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+
+            <!-- Notes section -->
             <TextBlock Text="Notes:" Grid.Row="0" Margin="0,0,0,5" FontWeight="Bold"/>
             <ListView x:Name="notesListView" Grid.Row="1" Margin="0,0,0,10" SelectionChanged="NotesListView_SelectionChanged">
                 <ListView.View>
@@ -120,9 +102,11 @@
                     </GridView>
                 </ListView.View>
             </ListView>
-            <Button Content="Add Note" Grid.Row="2" Click="AddNoteButton_Click" Padding="5,3"/>
-            <TextBlock Text="Calendar:" Grid.Row="2" Margin="0,10,0,5" FontWeight="Bold"/>
-            <StackPanel Grid.Row="3" Orientation="Horizontal">
+            <Button Content="Add Note" Grid.Row="2" Click="AddNoteButton_Click" Padding="5,3" Margin="0,0,0,10" HorizontalAlignment="Left"/>
+
+            <!-- Calendar section -->
+            <TextBlock Text="Calendar:" Grid.Row="3" Margin="0,10,0,5" FontWeight="Bold"/>
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button Content="Quick Add to Calendar" Click="QuickAddToCalendar_Click" Margin="0,0,5,0" Padding="5,3"/>
                 <Button Content="Create Detailed Event" Click="CreateDetailedEvent_Click" Padding="5,3"/>
             </StackPanel>

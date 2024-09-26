@@ -596,7 +596,10 @@ namespace EmailViewer
                 return;
             }
 
-            await InitializeCalendarService(); // Ensure calendar service is initialized
+            if (calendarService == null)
+            {
+                await InitializeCalendarService(); // Ensure calendar service is initialized
+            }
 
             var message = MimeMessage.Load(currentEmailPath);
             var eventWindow = new EventCreationWindow(message.Subject, message.TextBody);
