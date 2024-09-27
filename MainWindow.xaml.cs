@@ -33,6 +33,7 @@ namespace EmailViewer
         private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
         private User currentUser;
         private Google.Apis.Calendar.v3.CalendarService calendarService;
+        private EmailIndexer emailIndexer;
 
         // Default constructor for XAML
         public MainWindow() : this(null, null) { }
@@ -45,6 +46,8 @@ namespace EmailViewer
             InitializeComponent();
             currentUser = user;
             CommonInitialization();
+
+            emailIndexer = new EmailIndexer();
 
             // Initialize calendar service
             _ = InitializeCalendarService();  // Fire and forget
@@ -67,7 +70,7 @@ namespace EmailViewer
             selectedTags = new ObservableCollection<string>();
             Closing += MainWindow_Closing;
             clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId);
-
+            
             // Use user settings if available
             if (currentUser != null)
             {
@@ -252,15 +255,20 @@ namespace EmailViewer
         private void LoadEmailsFromDirectory(string directoryPath)
         {
             currentEmailPaths = Directory.GetFiles(directoryPath, "*.eml").ToList();
+            foreach (var path in currentEmailPaths)
+            {
+                var message = MimeMessage.Load(path);
+                emailIndexer.IndexEmail(path, message.Subject, message.From.ToString(), message.TextBody, message.Date.DateTime);
+            }
+
             searchResultsListView.ItemsSource = currentEmailPaths.Select(path => new EmailSearcher.SearchResult
             {
                 FilePath = path,
                 Subject = Path.GetFileNameWithoutExtension(path),
                 Client = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(path))),
                 Project = Path.GetFileName(Path.GetDirectoryName(path)),
-                // You might want to load the actual email to get the sender and date
-                Sender = "Unknown",
-                Date = File.GetCreationTime(path)
+                Sender = MimeMessage.Load(path).From.ToString(),
+                Date = MimeMessage.Load(path).Date.DateTime
             }).ToList();
         }
 
@@ -273,12 +281,17 @@ namespace EmailViewer
             }
 
             string searchTerm = searchTextBox.Text;
-            string senderFilter = senderTextBox.Text;
-            DateTime? startDate = startDatePicker.SelectedDate;
-            DateTime? endDate = endDatePicker.SelectedDate;
+            var searchResults = emailIndexer.Search(searchTerm);
 
-            var searchResults = emailSearcher.Search(rootPath, searchTerm, null, null, startDate, endDate, senderFilter);
-            searchResultsListView.ItemsSource = searchResults;
+            searchResultsListView.ItemsSource = searchResults.Select(result => new EmailSearcher.SearchResult
+            {
+                FilePath = result.FilePath,
+                Subject = result.Subject,
+                Sender = result.Sender,
+                Date = result.Date,
+                Client = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(result.FilePath))),
+                Project = Path.GetFileName(Path.GetDirectoryName(result.FilePath))
+            }).ToList();
         }
 
         private void SearchResultsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -544,6 +557,7 @@ namespace EmailViewer
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveEmailIdMap();
+            emailIndexer.Close();
         }
 
         private async Task InitializeCalendarService()
