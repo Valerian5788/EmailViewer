@@ -27,15 +27,7 @@ namespace EmailViewer.Models
         public string? DefaultRootPath { get; set; }
 
         [MaxLength(255)]
-        public string? ClickUpApiKey { get; set; }
-
-        [MaxLength(255)]
-        public string? ClickUpListId { get; set; }
-
-        [MaxLength(255)]
-        public string? ClickUpUserId { get; set; }
-
-        [MaxLength(255)]
         public string? RememberMeToken { get; set; }
+
     }
 }

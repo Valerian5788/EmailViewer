@@ -4,108 +4,133 @@ using System.IO;
 using System.Windows;
 using EmailViewer.Models;
 using EmailViewer.Data;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmailViewer
 {
     public partial class App : Application
     {
+        private string _configPassword;
+        private AppDbContext _context;
+        private User _currentUser;
+        private string _clickUpApiKey;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            _context = new AppDbContext();
+
             string envFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "secretkeys.env");
             DotNetEnv.Env.Load(envFilePath);
             VerifyEnvironmentVariables();
 
-            // Verify that the variables are loaded
-            string apiKey = Environment.GetEnvironmentVariable("CLICKUP_APIKEY");
-            if (string.IsNullOrEmpty(apiKey))
+            if (IsFirstTimeSetup())
             {
-                MessageBox.Show("Failed to load CLICKUP_APIKEY from environment variables.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowFirstTimeSetupWindow();
             }
-
-            string emailId = ParseEmailIdFromArgs(e.Args);
-
-            // Attempt auto-login
-            User loggedInUser = AttemptAutoLogin();
-
-            if (loggedInUser == null)
+            else
             {
-                // Show login window if auto-login failed
-                var loginWindow = new LoginWindow();
-                if (loginWindow.ShowDialog() == true)
+                if (!PromptForConfigPassword())
                 {
-                    loggedInUser = loginWindow.LoggedInUser;
-                }
-                else
-                {
-                    // User cancelled login, exit the application
                     Shutdown();
                     return;
                 }
-            }
 
-            // Create and show the main window
-            MainWindow mainWindow = new MainWindow(loggedInUser, emailId);
-            mainWindow.Show();
-        }
-
-        private string ParseEmailIdFromArgs(string[] args)
-        {
-            if (args.Length > 0)
-            {
-                Logger.Log($"First argument: {args[0]}");
-
-                if (args[0].StartsWith("emailviewer:"))
+                if (!AttemptAutoLogin())
                 {
-                    string emailId = ParseEmailId(args[0]);
-                    Logger.Log($"Parsed email ID from URL: {emailId}");
-                    return emailId;
-                }
-                else if (args[0] == "--emailId" && args.Length > 1)
-                {
-                    Logger.Log($"Email ID from command line argument: {args[1]}");
-                    return args[1];
+                    ShowLoginWindow();
                 }
                 else
                 {
-                    Logger.Log("Unrecognized argument format");
+                    LoadSecureConfiguration();
+                    StartMainApplication();
                 }
             }
-
-            return null;
         }
 
-        private string ParseEmailId(string url)
+        private bool IsFirstTimeSetup()
+        {
+            return !File.Exists("config.enc") || !_context.Users.Any();
+        }
+
+        private void ShowFirstTimeSetupWindow()
+        {
+            var setupWindow = new FirstTimeSetupWindow();
+            if (setupWindow.ShowDialog() == true)
+            {
+                _currentUser = setupWindow.User;
+                _configPassword = setupWindow.ConfigPassword;
+                _clickUpApiKey = setupWindow.ClickUpApiKey;
+                SaveSecureConfiguration();
+                StartMainApplication();
+            }
+            else
+            {
+                Shutdown();
+            }
+        }
+
+        private bool PromptForConfigPassword()
+        {
+            var passwordWindow = new PasswordPromptWindow("Enter your configuration password");
+            if (passwordWindow.ShowDialog() == true)
+            {
+                _configPassword = passwordWindow.Password;
+                return true;
+            }
+            return false;
+        }
+
+        private void LoadSecureConfiguration()
         {
             try
             {
-                Uri uri = new Uri(url);
-                return System.Web.HttpUtility.ParseQueryString(uri.Query).Get("id");
+                var clickUpApiKey = SecureStorage.GetEncrypted("CLICKUP_APIKEY", _configPassword);
+                Environment.SetEnvironmentVariable("CLICKUP_APIKEY", clickUpApiKey);
             }
             catch (Exception ex)
             {
-                Logger.Log($"Error parsing email ID: {ex.Message}");
-                return null;
+                MessageBox.Show($"Failed to load configuration: {ex.Message}");
+                Shutdown();
             }
         }
 
-        private User AttemptAutoLogin()
+        private void SaveSecureConfiguration()
+        {
+            SecureStorage.SaveEncrypted("CLICKUP_APIKEY", _clickUpApiKey, _configPassword);
+        }
+
+        private bool AttemptAutoLogin()
         {
             string token = AuthManager.LoadAuthToken();
             if (!string.IsNullOrEmpty(token))
             {
-                using (var context = new AppDbContext())
-                {
-                    var user = context.Users.FirstOrDefault(u => u.RememberMeToken == token);
-                    if (user != null)
-                    {
-                        Logger.Log("Auto-login successful");
-                        return user;
-                    }
-                }
+                _currentUser = _context.Users.FirstOrDefault(u => u.RememberMeToken == token);
+                return _currentUser != null;
             }
-            Logger.Log("Auto-login failed or no token found");
-            return null;
+            return false;
+        }
+
+        private void ShowLoginWindow()
+        {
+            var loginWindow = new LoginWindow();
+            if (loginWindow.ShowDialog() == true)
+            {
+                _currentUser = loginWindow.LoggedInUser;
+                StartMainApplication();
+            }
+            else
+            {
+                Shutdown();
+            }
+        }
+
+        private void StartMainApplication()
+        {
+            MainWindow mainWindow = new MainWindow(_currentUser);
+            mainWindow.Show();
         }
 
         private void VerifyEnvironmentVariables()

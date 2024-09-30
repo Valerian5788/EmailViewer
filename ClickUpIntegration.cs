@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.IO;
+using System.Net;
 
 namespace EmailViewer
 {
@@ -20,6 +21,8 @@ namespace EmailViewer
             _httpClient.DefaultRequestHeaders.Add("Authorization", API_KEY);
             this.getOrCreateEmailId = getOrCreateEmailIdFunc;
         }
+
+
 
         public async Task<string> CreateTaskAsync(string listId, TaskDetails taskDetails, string emailPath)
         {

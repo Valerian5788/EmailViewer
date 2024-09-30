@@ -27,12 +27,14 @@ namespace EmailViewer
 
         public void IndexEmail(string filePath, string subject, string sender, string body, DateTime date)
         {
-            var doc = new Document();
-            doc.Add(new StringField("path", filePath, Field.Store.YES));
-            doc.Add(new TextField("subject", subject, Field.Store.YES));
-            doc.Add(new StringField("sender", sender, Field.Store.YES));
-            doc.Add(new TextField("body", body, Field.Store.YES));
-            doc.Add(new Int64Field("date", date.Ticks, Field.Store.YES));
+            var doc = new Document
+            {
+                new StringField("path", filePath, Field.Store.YES),
+                new TextField("subject", subject, Field.Store.YES),
+                new StringField("sender", sender, Field.Store.YES),
+                new TextField("body", body, Field.Store.YES),
+                new Int64Field("date", date.Ticks, Field.Store.YES)
+            };
 
             writer.AddDocument(doc);
             writer.Commit();

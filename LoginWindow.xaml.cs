@@ -21,6 +21,7 @@ namespace EmailViewer
         private readonly AppDbContext _context = new AppDbContext();
         private static string ClientId => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
         private static string ClientSecret => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+
         public User LoggedInUser { get; private set; }
 
         // Initialize RateLimiter: 3 attempts per 5 minutes
@@ -29,23 +30,9 @@ namespace EmailViewer
         public LoginWindow()
         {
             InitializeComponent();
-            AttemptAutoLogin();
         }
 
-        private void AttemptAutoLogin()
-        {
-            string token = AuthManager.LoadAuthToken();
-            if (!string.IsNullOrEmpty(token))
-            {
-                var user = _context.Users.FirstOrDefault(u => u.RememberMeToken == token);
-                if (user != null)
-                {
-                    LoggedInUser = user;
-                    DialogResult = true;
-                    Close();
-                }
-            }
-        }
+
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
@@ -159,44 +146,10 @@ namespace EmailViewer
                 AuthManager.SaveAuthToken(user.RememberMeToken);
             }
 
-            if (IsFirstTimeSetupNeeded(user))
-            {
-                ShowFirstTimeSetupWindow(user);
-            }
-            else
-            {
-                OpenMainWindow(user);
-            }
+            DialogResult = true;
+            Close();
         }
 
-        private bool IsFirstTimeSetupNeeded(User user)
-        {
-            return string.IsNullOrEmpty(user.OneDriveRootPath) ||
-                   string.IsNullOrEmpty(user.DefaultRootPath) ||
-                   string.IsNullOrEmpty(user.ClickUpApiKey) ||
-                   string.IsNullOrEmpty(user.ClickUpListId) ||
-                   string.IsNullOrEmpty(user.ClickUpUserId);
-        }
-
-        private void ShowFirstTimeSetupWindow(User user)
-        {
-            var setupWindow = new FirstTimeSetupWindow(user);
-            if (setupWindow.ShowDialog() == true)
-            {
-                OpenMainWindow(user);
-            }
-            else
-            {
-                MessageBox.Show("Setup cancelled. You need to complete the setup to use the application.");
-            }
-        }
-
-        private void OpenMainWindow(User user)
-        {
-            var mainWindow = new MainWindow(user);
-            mainWindow.Show();
-            this.Close();
-        }
 
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
