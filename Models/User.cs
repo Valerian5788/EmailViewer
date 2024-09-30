@@ -29,5 +29,11 @@ namespace EmailViewer.Models
         [MaxLength(255)]
         public string? RememberMeToken { get; set; }
 
+        [MaxLength(1000)]
+        public string? EncryptedClickUpApiKey { get; set; }
+
+        [MaxLength(255)]
+        public string? ClickUpWorkspaceId { get; set; }
+
     }
 }

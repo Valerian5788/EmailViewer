@@ -28,12 +28,15 @@ namespace EmailViewer
         private ObservableCollection<string> availableTags;
         private ObservableCollection<string> selectedTags;
         private ClickUpIntegration clickUpIntegration;
+        private string decryptedClickUpApiKey;
         private string oneDriveBasePath;
         private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
         private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
         private User currentUser;
         private Google.Apis.Calendar.v3.CalendarService calendarService;
         private EmailIndexer emailIndexer;
+        private Dictionary<string, string> userIdMap;
+        private Dictionary<string, string> listIdMap;
 
         // Default constructor for XAML
         public MainWindow() : this(null, null) { }
@@ -69,8 +72,9 @@ namespace EmailViewer
             availableTags = new ObservableCollection<string> { "Urgent", "To Do", "To Treat" };
             selectedTags = new ObservableCollection<string>();
             Closing += MainWindow_Closing;
-            clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId);
-            
+            decryptedClickUpApiKey = DecryptClickUpApiKey(currentUser.EncryptedClickUpApiKey);
+            clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId, decryptedClickUpApiKey);
+
             // Use user settings if available
             if (currentUser != null)
             {
@@ -97,6 +101,15 @@ namespace EmailViewer
 
             LoadEmailIdMap();
             LoadRecentEmails();
+        }
+
+        private string DecryptClickUpApiKey(string encryptedApiKey)
+        {
+            if (string.IsNullOrEmpty(encryptedApiKey))
+            {
+                return null;
+            }
+            return AuthManager.DecryptString(encryptedApiKey);
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
@@ -448,17 +461,16 @@ namespace EmailViewer
             try
             {
                 Logger.Log($"Current Email Path: {currentEmailPath}");
-                var taskWindow = new TaskCreationWindow(currentEmailPath);
+
+                var users = await clickUpIntegration.GetUsersAsync(currentUser.ClickUpWorkspaceId);
+                var spaces = await clickUpIntegration.GetSpacesAsync(currentUser.ClickUpWorkspaceId);
+
+                var taskWindow = new TaskCreationWindow(currentEmailPath, users, spaces, clickUpIntegration);
                 if (taskWindow.ShowDialog() == true)
                 {
-                    string clickUpListId = currentUser.ClickUpListId;
-                    Logger.Log($"ClickUp List ID: {clickUpListId}");
                     Logger.Log($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
 
-                    // Get the email ID
-                    string emailId = GetOrCreateEmailId(currentEmailPath);
-
-                    string taskId = await clickUpIntegration.CreateTaskAsync(clickUpListId, taskWindow.TaskDetails, currentEmailPath);
+                    string taskId = await clickUpIntegration.CreateTaskAsync(taskWindow.TaskDetails, currentEmailPath);
                     Logger.Log($"Task created successfully. Task ID: {taskId}");
                     MessageBox.Show($"Tâche créée avec succès dans ClickUp! ID de la tâche: {taskId}");
                 }
@@ -469,9 +481,6 @@ namespace EmailViewer
                 MessageBox.Show($"Erreur détaillée lors de la création de la tâche : {ex.Message}\n\nStack Trace: {ex.StackTrace}");
             }
         }
-
-
-
 
         private string SelectExcelFile()
         {

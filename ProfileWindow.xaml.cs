@@ -21,18 +21,18 @@ namespace EmailViewer
             EmailTextBox.Text = User.Email;
             OneDrivePathTextBox.Text = User.OneDriveRootPath;
             DefaultRootPathTextBox.Text = User.DefaultRootPath;
-            ClickUpApiKeyTextBox.Text = User.ClickUpApiKey;
-            ClickUpListIdTextBox.Text = User.ClickUpListId;
-            ClickUpUserIdTextBox.Text = User.ClickUpUserId;
+
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             User.OneDriveRootPath = OneDrivePathTextBox.Text;
             User.DefaultRootPath = DefaultRootPathTextBox.Text;
-            User.ClickUpApiKey = ClickUpApiKeyTextBox.Text;
-            User.ClickUpListId = ClickUpListIdTextBox.Text;
-            User.ClickUpUserId = ClickUpUserIdTextBox.Text;
+            string clickUpApiKey = ClickUpApiKeyTextBox.Text;
+            if (!string.IsNullOrEmpty(clickUpApiKey))
+            {
+                User.EncryptedClickUpApiKey = AuthManager.EncryptString(clickUpApiKey);
+            }
 
             _context.SaveChanges();
 

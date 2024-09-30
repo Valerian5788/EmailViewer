@@ -25,6 +25,8 @@ public class AuthManager
         return null;
     }
 
+
+
     public static void ClearAuthToken()
     {
         if (File.Exists(AUTH_FILE))
@@ -33,7 +35,7 @@ public class AuthManager
         }
     }
 
-    private static string EncryptString(string input)
+    public static string EncryptString(string input)
     {
         byte[] encryptedData = ProtectedData.Protect(
             System.Text.Encoding.UTF8.GetBytes(input),
@@ -42,7 +44,7 @@ public class AuthManager
         return Convert.ToBase64String(encryptedData);
     }
 
-    private static string DecryptString(string encryptedData)
+    public static string DecryptString(string encryptedData)
     {
         try
         {
