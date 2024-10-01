@@ -28,7 +28,7 @@ namespace EmailViewer
         private ObservableCollection<string> availableTags;
         private ObservableCollection<string> selectedTags;
         private ClickUpIntegration clickUpIntegration;
-        private string decryptedClickUpApiKey;
+        //private string decryptedClickUpApiKey;
         private string oneDriveBasePath;
         private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
         private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
@@ -39,15 +39,20 @@ namespace EmailViewer
         private Dictionary<string, string> listIdMap;
 
         // Default constructor for XAML
-        public MainWindow() : this(null, null) { }
+        public MainWindow() : this(null, null)
+        {
+            Logger.Log("Entering parameterless MainWindow constructor");
+        }
 
         // Constructor with email ID parameter
         public MainWindow(string emailId) : this(null, emailId) { }
 
         public MainWindow(User user, string emailId = null)
         {
+            Logger.Log($"Entering MainWindow constructor with user: {user?.Email ?? "null"} and emailId: {emailId ?? "null"}");
             InitializeComponent();
             currentUser = user;
+            Logger.Log($"After InitializeComponent, currentUser: {currentUser?.Email ?? "null"}");
             CommonInitialization();
 
             emailIndexer = new EmailIndexer();
@@ -59,39 +64,61 @@ namespace EmailViewer
             {
                 OpenEmailFromId(emailId);
             }
-            Logger.Log(emailId == null ? "J'ai ouvert sans parametre" : "J'ai ouvert avec parametre");
+            Logger.Log(emailId == null ? "MainWindow opened without parameter" : "MainWindow opened with parameter");
+            Logger.Log($"Exiting MainWindow constructor, currentUser: {currentUser?.Email ?? "null"}");
         }
 
 
 
         private void CommonInitialization()
         {
+            Logger.Log($"Entering CommonInitialization, currentUser: {currentUser?.Email ?? "null"}");
             recentEmailsManager = new RecentEmailsManager();
             emailSearcher = new EmailSearcher();
             noteManager = new NoteManager();
             availableTags = new ObservableCollection<string> { "Urgent", "To Do", "To Treat" };
             selectedTags = new ObservableCollection<string>();
             Closing += MainWindow_Closing;
-            decryptedClickUpApiKey = DecryptClickUpApiKey(currentUser.EncryptedClickUpApiKey);
-            clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId, decryptedClickUpApiKey);
+
+            if (currentUser != null)
+            {
+                Logger.Log($"Initializing ClickUpIntegration with API key: {currentUser.EncryptedClickUpApiKey ?? "null"}");
+                clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId, currentUser.EncryptedClickUpApiKey);
+                Logger.Log("ClickUpIntegration initialized successfully");
+            }
+            else
+            {
+                Logger.Log("Cannot initialize ClickUpIntegration: currentUser is null");
+            }
 
             // Use user settings if available
             if (currentUser != null)
             {
                 oneDriveBasePath = currentUser.OneDriveRootPath;
                 rootPath = currentUser.DefaultRootPath;
-                // Use other user properties as needed
+                Logger.Log($"Using user settings: OneDriveRootPath = {oneDriveBasePath}, DefaultRootPath = {rootPath}");
             }
             else
             {
                 // Fallback to default values or load from environment variables
                 oneDriveBasePath = @"C:\Users\User\OneDrive"; // Replace with your actual path
                 rootPath = Environment.GetEnvironmentVariable("DEFAULT_ROOT_PATH");
+                Logger.Log($"Using default settings: OneDriveRootPath = {oneDriveBasePath}, DefaultRootPath = {rootPath}");
             }
 
             try
             {
-                OneDriveIntegration.SetOneDriveRootPath(currentUser.OneDriveRootPath);
+                if (!string.IsNullOrEmpty(currentUser?.OneDriveRootPath))
+                {
+                    OneDriveIntegration.SetOneDriveRootPath(currentUser.OneDriveRootPath);
+                    Logger.Log($"OneDrive root path set to: {currentUser.OneDriveRootPath}");
+                }
+                else
+                {
+                    string defaultPath = @"C:\Users\User\OneDrive"; // Replace with a suitable default
+                    OneDriveIntegration.SetOneDriveRootPath(defaultPath);
+                    Logger.Log($"OneDrive root path set to default: {defaultPath}");
+                }
             }
             catch (Exception ex)
             {
@@ -101,6 +128,7 @@ namespace EmailViewer
 
             LoadEmailIdMap();
             LoadRecentEmails();
+            Logger.Log("Exiting CommonInitialization");
         }
 
         private string DecryptClickUpApiKey(string encryptedApiKey)

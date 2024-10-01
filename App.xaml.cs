@@ -11,6 +11,7 @@ namespace EmailViewer
 {
     public partial class App : Application
     {
+        private MainWindow _mainWindow;
         private string _configPassword;
         private AppDbContext _context;
         private User _currentUser;
@@ -20,57 +21,75 @@ namespace EmailViewer
         {
             base.OnStartup(e);
 
+            Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
             _context = new AppDbContext();
 
+            // Load environment variables
             string envFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "secretkeys.env");
             DotNetEnv.Env.Load(envFilePath);
             VerifyEnvironmentVariables();
 
-            if (IsFirstTimeSetup())
+            // Create and show login window
+            var loginWindow = new LoginWindow();
+            if (loginWindow.ShowDialog() != true)  // Ensure login window is shown first
             {
-                ShowFirstTimeSetupWindow();
+                Shutdown(); // Shutdown only if login fails or is canceled
+                return;
             }
-            else
+
+            // Get the logged-in user
+            _currentUser = loginWindow.LoggedInUser;
+            if (_currentUser == null)
             {
-                if (!PromptForConfigPassword())
+                MessageBox.Show("Error: User is null after login.");
+                Shutdown(); // Shutdown if no user is found after login
+                return;
+            }
+
+            // Check for first-time setup
+            bool isFirstTimeSetup = IsFirstTimeSetup();
+            if (isFirstTimeSetup)
+            {
+                var firstTimeSetupWindow = new FirstTimeSetupWindow(_currentUser);
+                if (firstTimeSetupWindow.ShowDialog() != true)  // Ensure first-time setup window is properly initialized
                 {
-                    Shutdown();
+                    Shutdown(); // Shutdown only if the first-time setup is canceled
                     return;
                 }
 
-                if (!AttemptAutoLogin())
-                {
-                    ShowLoginWindow();
-                }
-                else
-                {
-                    LoadSecureConfiguration();
-                    StartMainApplication();
-                }
-            }
-        }
-
-        private bool IsFirstTimeSetup()
-        {
-            return !File.Exists("config.enc") || !_context.Users.Any();
-        }
-
-        private void ShowFirstTimeSetupWindow()
-        {
-            var setupWindow = new FirstTimeSetupWindow();
-            if (setupWindow.ShowDialog() == true)
-            {
-                _currentUser = setupWindow.User;
-                _configPassword = setupWindow.ConfigPassword;
-                _clickUpApiKey = setupWindow.ClickUpApiKey;
+                _currentUser = firstTimeSetupWindow.User;
+                _configPassword = firstTimeSetupWindow.ConfigPassword;
+                _clickUpApiKey = firstTimeSetupWindow.ClickUpApiKey;
                 SaveSecureConfiguration();
-                StartMainApplication();
+            }
+            Logger.Log("Before creating main window, the user is : " + _currentUser.Email );
+            // Create and show main window
+            if (_mainWindow == null)
+            {
+                Logger.Log("Creating MainWindow instance");
+                _mainWindow = new MainWindow(_currentUser);
+                _mainWindow.Show();
             }
             else
             {
-                Shutdown();
+                Logger.Log("MainWindow instance already exists");
             }
         }
+
+
+
+        private bool IsFirstTimeSetup()
+        {
+            bool configFileExists = File.Exists("config.enc");
+            bool usersExist = _context.Users.Any();
+
+            MessageBox.Show($"Config file exists: {configFileExists}\nUsers exist: {usersExist}");
+
+            return !configFileExists || !usersExist;
+        }
+
+
 
         private bool PromptForConfigPassword()
         {
@@ -113,25 +132,7 @@ namespace EmailViewer
             return false;
         }
 
-        private void ShowLoginWindow()
-        {
-            var loginWindow = new LoginWindow();
-            if (loginWindow.ShowDialog() == true)
-            {
-                _currentUser = loginWindow.LoggedInUser;
-                StartMainApplication();
-            }
-            else
-            {
-                Shutdown();
-            }
-        }
-
-        private void StartMainApplication()
-        {
-            MainWindow mainWindow = new MainWindow(_currentUser);
-            mainWindow.Show();
-        }
+        
 
         private void VerifyEnvironmentVariables()
         {

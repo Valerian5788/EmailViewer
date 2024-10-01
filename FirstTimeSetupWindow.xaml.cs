@@ -6,19 +6,33 @@ namespace EmailViewer
 {
     public partial class FirstTimeSetupWindow : Window
     {
-        private readonly AppDbContext _context = new AppDbContext();
-        public User User { get; private set; }
+        private readonly AppDbContext _context; // Use the same context passed through the flow
+        public User User { get; private set; } // This is the existing user passed from the login window
         public string ConfigPassword { get; private set; }
         public string ClickUpApiKey { get; private set; }
 
-        public FirstTimeSetupWindow()
+        // Constructor accepting the existing User
+        public FirstTimeSetupWindow(User user)
         {
             InitializeComponent();
-            User = new User();
+
+            try
+            {
+                _context = new AppDbContext();
+                User = user;
+                _context.Users.Attach(User);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error initializing FirstTimeSetupWindow: {ex.Message}");
+                Application.Current.Shutdown(); // Optionally force shutdown if critical
+            }
         }
 
+        // Click event handler for the Save button
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            // Validate input fields
             if (string.IsNullOrWhiteSpace(OneDriveRootPathTextBox.Text) ||
                 string.IsNullOrWhiteSpace(DefaultRootPathTextBox.Text) ||
                 string.IsNullOrWhiteSpace(ClickUpApiKeyTextBox.Text))
@@ -35,22 +49,24 @@ namespace EmailViewer
             }
             else
             {
-                return; // User cancelled password entry
+                return; // User cancelled password entry, abort saving
             }
 
-            // Save non-sensitive information to User object
+            // Update the existing user with the information from the form
             User.OneDriveRootPath = OneDriveRootPathTextBox.Text;
             User.DefaultRootPath = DefaultRootPathTextBox.Text;
+            User.EncryptedClickUpApiKey = ClickUpApiKeyTextBox.Text;
 
-            _context.Users.Add(User);
+            // Save the user information to the database (since the user is attached to the context, EF will track changes)
             _context.SaveChanges();
 
-            // Store ClickUp API key for later use in secure storage
+            // Store ClickUp API key for later use (in memory for now, consider secure storage)
             ClickUpApiKey = ClickUpApiKeyTextBox.Text;
 
+            // Indicate success and close the window
             MessageBox.Show("Setup completed successfully!");
             DialogResult = true;
-            Close();
+            Close(); // This will signal completion and return control to the calling method (App.xaml.cs)
         }
     }
 }
