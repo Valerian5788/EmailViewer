@@ -38,14 +38,33 @@ namespace EmailViewer
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                MessageBox.Show("Registration successful!");
-                DialogResult = true;
-                Close();
+                // Show FirstTimeSetupWindow
+                var firstTimeSetupWindow = new FirstTimeSetupWindow(user);
+                if (firstTimeSetupWindow.ShowDialog() == true)
+                {
+                    user = firstTimeSetupWindow.User;
+                    await _context.SaveChangesAsync();
+
+                    MessageBox.Show("Registration and setup completed successfully!");
+
+                    // Create and show the MainWindow
+                    var mainWindow = new MainWindow(user);
+                    mainWindow.Show();
+
+                    // Close the current window (RegisterWindow)
+                    this.Close();
+                }
+                else
+                {
+                    // If the user cancels the FirstTimeSetupWindow, we should probably delete the user
+                    _context.Users.Remove(user);
+                    await _context.SaveChangesAsync();
+                    MessageBox.Show("Registration cancelled.");
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred during registration: {ex.Message}");
-                // Log the exception
                 Logger.Log($"Registration error: {ex}");
             }
         }

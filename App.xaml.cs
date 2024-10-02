@@ -43,44 +43,61 @@ namespace EmailViewer
             DotNetEnv.Env.Load(envFilePath);
             VerifyEnvironmentVariables();
 
-            // Create and show login window
-            var loginWindow = new LoginWindow();
-            if (loginWindow.ShowDialog() != true)
+            // Attempt auto-login
+            if (AttemptAutoLogin())
             {
-                Shutdown();
-                return;
+                // User was automatically logged in
+                ShowMainWindow();
             }
-
-            // Get the logged-in user
-            _currentUser = loginWindow.LoggedInUser;
-            if (_currentUser == null)
+            else
             {
-                MessageBox.Show("Error: User is null after login.");
-                Shutdown();
-                return;
-            }
+                // Show login window
+                var loginWindow = new LoginWindow();
+                if (loginWindow.ShowDialog() == true)
+                {
+                    _currentUser = loginWindow.LoggedInUser;
 
-            // Check for first-time setup
-            bool isFirstTimeSetup = IsFirstTimeSetup();
-            if (isFirstTimeSetup)
-            {
-                var firstTimeSetupWindow = new FirstTimeSetupWindow(_currentUser);
-                if (firstTimeSetupWindow.ShowDialog() != true)
+                    // Check for first-time setup
+                    bool isFirstTimeSetup = IsFirstTimeSetup();
+                    if (isFirstTimeSetup)
+                    {
+                        if (!PerformFirstTimeSetup())
+                        {
+                            Shutdown();
+                            return;
+                        }
+                    }
+
+                    ShowMainWindow();
+                }
+                else
                 {
                     Shutdown();
                     return;
                 }
-
-                _currentUser = firstTimeSetupWindow.User;
-                _configPassword = firstTimeSetupWindow.ConfigPassword;
-                _clickUpApiKey = firstTimeSetupWindow.ClickUpApiKey;
-                SaveSecureConfiguration();
             }
 
-            Logger.Log("Before creating main window, the user is : " + _currentUser.Email);
+            Logger.Log("Application startup completed successfully");
+        }
 
-            // Create and show main window
-            Logger.Log("Creating MainWindow instance");
+        private bool PerformFirstTimeSetup()
+        {
+            var firstTimeSetupWindow = new FirstTimeSetupWindow(_currentUser);
+            if (firstTimeSetupWindow.ShowDialog() != true)
+            {
+                return false;
+            }
+
+            _currentUser = firstTimeSetupWindow.User;
+            _configPassword = firstTimeSetupWindow.ConfigPassword;
+            _clickUpApiKey = firstTimeSetupWindow.ClickUpApiKey;
+            SaveSecureConfiguration();
+            return true;
+        }
+
+        private void ShowMainWindow()
+        {
+            Logger.Log($"Showing MainWindow for user: {_currentUser.Email}");
             _mainWindow = new MainWindow(_currentUser);
             _mainWindow.Closed += (s, args) => Shutdown();
             _mainWindow.Show();
@@ -143,8 +160,13 @@ namespace EmailViewer
             if (!string.IsNullOrEmpty(token))
             {
                 _currentUser = _context.Users.FirstOrDefault(u => u.RememberMeToken == token);
-                return _currentUser != null;
+                if (_currentUser != null)
+                {
+                    Logger.Log($"Auto-login successful for user: {_currentUser.Email}");
+                    return true;
+                }
             }
+            Logger.Log("Auto-login failed or no token found");
             return false;
         }
 

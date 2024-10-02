@@ -106,20 +106,10 @@ namespace EmailViewer
                     user.GoogleId = userInfo.Subject;
                 }
 
-                try
-                {
-                    await _context.SaveChangesAsync();
-                    Logger.Log($"User processed for Google account: {userInfo.Email}");
-                }
-                catch (DbUpdateException dbEx)
-                {
-                    Logger.Log($"Database update error: {dbEx.Message}");
-                    Logger.Log($"Inner exception: {dbEx.InnerException?.Message}");
-                    MessageBox.Show("An error occurred while saving user data. Please try again.");
-                    return;
-                }
+                await _context.SaveChangesAsync();
+                Logger.Log($"User processed for Google account: {userInfo.Email}");
 
-                LoginSuccessful(user);
+                GoogleLoginSuccessful(user);
             }
             catch (Exception ex)
             {
@@ -145,12 +135,19 @@ namespace EmailViewer
                 _context.SaveChanges();
                 AuthManager.SaveAuthToken(user.RememberMeToken);
             }
-
             DialogResult = true;
             Close();
         }
 
-
+        private void GoogleLoginSuccessful(User user)
+        {
+            LoggedInUser = user;
+            user.RememberMeToken = Guid.NewGuid().ToString();
+            _context.SaveChanges();
+            AuthManager.SaveAuthToken(user.RememberMeToken);
+            DialogResult = true;
+            Close();
+        }
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
