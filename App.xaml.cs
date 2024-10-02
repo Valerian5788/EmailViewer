@@ -6,11 +6,15 @@ using EmailViewer.Models;
 using EmailViewer.Data;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace EmailViewer
 {
     public partial class App : Application
     {
+        private const string MutexName = "EmailViewerSingleInstanceMutex";
+        private Mutex _mutex;
+
         private MainWindow _mainWindow;
         private string _configPassword;
         private AppDbContext _context;
@@ -19,6 +23,15 @@ namespace EmailViewer
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            _mutex = new Mutex(true, MutexName, out bool createdNew);
+
+            if (!createdNew)
+            {
+                MessageBox.Show("An instance of the application is already running.", "Multiple Instances", MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
+
             base.OnStartup(e);
 
             Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -32,9 +45,9 @@ namespace EmailViewer
 
             // Create and show login window
             var loginWindow = new LoginWindow();
-            if (loginWindow.ShowDialog() != true)  // Ensure login window is shown first
+            if (loginWindow.ShowDialog() != true)
             {
-                Shutdown(); // Shutdown only if login fails or is canceled
+                Shutdown();
                 return;
             }
 
@@ -43,7 +56,7 @@ namespace EmailViewer
             if (_currentUser == null)
             {
                 MessageBox.Show("Error: User is null after login.");
-                Shutdown(); // Shutdown if no user is found after login
+                Shutdown();
                 return;
             }
 
@@ -52,9 +65,9 @@ namespace EmailViewer
             if (isFirstTimeSetup)
             {
                 var firstTimeSetupWindow = new FirstTimeSetupWindow(_currentUser);
-                if (firstTimeSetupWindow.ShowDialog() != true)  // Ensure first-time setup window is properly initialized
+                if (firstTimeSetupWindow.ShowDialog() != true)
                 {
-                    Shutdown(); // Shutdown only if the first-time setup is canceled
+                    Shutdown();
                     return;
                 }
 
@@ -63,18 +76,21 @@ namespace EmailViewer
                 _clickUpApiKey = firstTimeSetupWindow.ClickUpApiKey;
                 SaveSecureConfiguration();
             }
-            Logger.Log("Before creating main window, the user is : " + _currentUser.Email );
+
+            Logger.Log("Before creating main window, the user is : " + _currentUser.Email);
+
             // Create and show main window
-            if (_mainWindow == null)
-            {
-                Logger.Log("Creating MainWindow instance");
-                _mainWindow = new MainWindow(_currentUser);
-                _mainWindow.Show();
-            }
-            else
-            {
-                Logger.Log("MainWindow instance already exists");
-            }
+            Logger.Log("Creating MainWindow instance");
+            _mainWindow = new MainWindow(_currentUser);
+            _mainWindow.Closed += (s, args) => Shutdown();
+            _mainWindow.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _mutex?.ReleaseMutex();
+            _mutex?.Dispose();
+            base.OnExit(e);
         }
 
 
@@ -84,7 +100,7 @@ namespace EmailViewer
             bool configFileExists = File.Exists("config.enc");
             bool usersExist = _context.Users.Any();
 
-            MessageBox.Show($"Config file exists: {configFileExists}\nUsers exist: {usersExist}");
+            Logger.Log($"Config file exists: {configFileExists}\nUsers exist: {usersExist}");
 
             return !configFileExists || !usersExist;
         }
@@ -102,17 +118,17 @@ namespace EmailViewer
             return false;
         }
 
-        private void LoadSecureConfiguration()
+        public static string LoadKeyFromSecureConfiguration(string configPassword)
         {
             try
             {
-                var clickUpApiKey = SecureStorage.GetEncrypted("CLICKUP_APIKEY", _configPassword);
-                Environment.SetEnvironmentVariable("CLICKUP_APIKEY", clickUpApiKey);
+                string clickUpApiKey = SecureStorage.GetEncrypted("CLICKUP_APIKEY", configPassword);
+                return clickUpApiKey;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to load configuration: {ex.Message}");
-                Shutdown();
+                return null;
             }
         }
 
@@ -132,7 +148,7 @@ namespace EmailViewer
             return false;
         }
 
-        
+
 
         private void VerifyEnvironmentVariables()
         {

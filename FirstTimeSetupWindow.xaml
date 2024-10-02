@@ -18,6 +18,8 @@
                 <TextBox x:Name="DefaultRootPathTextBox" Margin="0,0,0,15"/>
                 <TextBlock Text="ClickUp API Key:" Margin="0,0,0,5"/>
                 <TextBox x:Name="ClickUpApiKeyTextBox" Margin="0,0,0,15"/>
+                <TextBlock Text="ClickUp Workspace Id:" Margin="0,0,0,5"/>
+                <TextBox x:Name="ClickUpWorkspaceId" Margin="0,0,0,15"/>
             </StackPanel>
         </ScrollViewer>
         <Button Grid.Row="2" Content="Save and Continue" Click="SaveButton_Click" 

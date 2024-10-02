@@ -10,7 +10,7 @@ using Lucene.Net.QueryParsers.Classic;
 
 namespace EmailViewer
 {
-    public class EmailIndexer
+    public class EmailIndexer : IDisposable
     {
         private const LuceneVersion AppLuceneVersion = LuceneVersion.LUCENE_48;
         private const string INDEX_DIR = "email_index";
@@ -19,10 +19,40 @@ namespace EmailViewer
 
         public EmailIndexer()
         {
+            InitializeIndexWriter();
+        }
+
+        private void InitializeIndexWriter()
+        {
             directory = FSDirectory.Open(INDEX_DIR);
             var analyzer = new StandardAnalyzer(AppLuceneVersion);
             var config = new IndexWriterConfig(AppLuceneVersion, analyzer);
-            writer = new IndexWriter(directory, config);
+
+            // Check for stale lock before creating IndexWriter
+            if (IndexWriter.IsLocked(directory))
+            {
+                Logger.Log("Stale lock detected. Attempting to clear...");
+                IndexWriter.Unlock(directory);
+            }
+
+            int retries = 3;
+            while (retries > 0)
+            {
+                try
+                {
+                    writer = new IndexWriter(directory, config);
+                    break;
+                }
+                catch (LockObtainFailedException)
+                {
+                    retries--;
+                    if (retries == 0)
+                    {
+                        throw;
+                    }
+                    System.Threading.Thread.Sleep(1000); // Wait for 1 second before retrying
+                }
+            }
         }
 
         public void IndexEmail(string filePath, string subject, string sender, string body, DateTime date)
@@ -67,10 +97,10 @@ namespace EmailViewer
             }
         }
 
-        public void Close()
+        public void Dispose()
         {
-            writer.Dispose();
-            directory.Dispose();
+            writer?.Dispose();
+            directory?.Dispose();
         }
     }
 

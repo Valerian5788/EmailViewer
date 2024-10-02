@@ -55,18 +55,17 @@ namespace EmailViewer
             // Update the existing user with the information from the form
             User.OneDriveRootPath = OneDriveRootPathTextBox.Text;
             User.DefaultRootPath = DefaultRootPathTextBox.Text;
-            User.EncryptedClickUpApiKey = ClickUpApiKeyTextBox.Text;
+            User.ClickUpWorkspaceId = ClickUpWorkspaceId.Text;
 
-            // Save the user information to the database (since the user is attached to the context, EF will track changes)
+            // Save the user information to the database
             _context.SaveChanges();
 
-            // Store ClickUp API key for later use (in memory for now, consider secure storage)
             ClickUpApiKey = ClickUpApiKeyTextBox.Text;
 
             // Indicate success and close the window
             MessageBox.Show("Setup completed successfully!");
             DialogResult = true;
-            Close(); // This will signal completion and return control to the calling method (App.xaml.cs)
+            Close();
         }
     }
 }

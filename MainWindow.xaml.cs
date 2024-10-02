@@ -37,15 +37,15 @@ namespace EmailViewer
         private EmailIndexer emailIndexer;
         private Dictionary<string, string> userIdMap;
         private Dictionary<string, string> listIdMap;
+        private string _ClickUpApiKey;
 
-        // Default constructor for XAML
-        public MainWindow() : this(null, null)
+        
+        private MainWindow()
         {
-            Logger.Log("Entering parameterless MainWindow constructor");
+            InitializeComponent();
+            // This constructor should not be used directly
+            throw new InvalidOperationException("MainWindow must be initialized with a User object.");
         }
-
-        // Constructor with email ID parameter
-        public MainWindow(string emailId) : this(null, emailId) { }
 
         public MainWindow(User user, string emailId = null)
         {
@@ -53,26 +53,38 @@ namespace EmailViewer
             InitializeComponent();
             currentUser = user;
             Logger.Log($"After InitializeComponent, currentUser: {currentUser?.Email ?? "null"}");
-            CommonInitialization();
 
-            emailIndexer = new EmailIndexer();
+            try
+            {
+                CommonInitialization();
+
+                if (!string.IsNullOrEmpty(emailId))
+                {
+                    OpenEmailFromId(emailId);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error during initialization: {ex.Message}");
+                MessageBox.Show($"An error occurred during initialization: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
             // Initialize calendar service
             _ = InitializeCalendarService();  // Fire and forget
 
-            if (!string.IsNullOrEmpty(emailId))
-            {
-                OpenEmailFromId(emailId);
-            }
             Logger.Log(emailId == null ? "MainWindow opened without parameter" : "MainWindow opened with parameter");
             Logger.Log($"Exiting MainWindow constructor, currentUser: {currentUser?.Email ?? "null"}");
         }
 
-
-
         private void CommonInitialization()
         {
             Logger.Log($"Entering CommonInitialization, currentUser: {currentUser?.Email ?? "null"}");
+
+            if (currentUser == null)
+            {
+                throw new InvalidOperationException("User is null. Cannot initialize MainWindow.");
+            }
+
             recentEmailsManager = new RecentEmailsManager();
             emailSearcher = new EmailSearcher();
             noteManager = new NoteManager();
@@ -80,54 +92,67 @@ namespace EmailViewer
             selectedTags = new ObservableCollection<string>();
             Closing += MainWindow_Closing;
 
-            if (currentUser != null)
+            // Prompt for configuration password
+            var passwordWindow = new PasswordPromptWindow("Enter your configuration password");
+            if (passwordWindow.ShowDialog() == true)
             {
-                Logger.Log($"Initializing ClickUpIntegration with API key: {currentUser.EncryptedClickUpApiKey ?? "null"}");
-                clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId, currentUser.EncryptedClickUpApiKey);
-                Logger.Log("ClickUpIntegration initialized successfully");
+                string configPassword = passwordWindow.Password;
+                _ClickUpApiKey = App.LoadKeyFromSecureConfiguration(configPassword);
+
+                if (!string.IsNullOrEmpty(_ClickUpApiKey))
+                {
+                    Logger.Log($"Initializing ClickUpIntegration with API key: {_ClickUpApiKey.Substring(0, 5)}...");
+                    clickUpIntegration = new ClickUpIntegration(GetOrCreateEmailId, _ClickUpApiKey);
+                    Logger.Log("ClickUpIntegration initialized successfully");
+                }
+                else
+                {
+                    Logger.Log("Failed to retrieve ClickUp API key");
+                    MessageBox.Show("Failed to retrieve ClickUp API key. Some features may not work.");
+                }
             }
             else
             {
-                Logger.Log("Cannot initialize ClickUpIntegration: currentUser is null");
+                Logger.Log("User cancelled configuration password entry");
+                MessageBox.Show("Configuration password is required for full functionality.");
             }
 
-            // Use user settings if available
-            if (currentUser != null)
-            {
-                oneDriveBasePath = currentUser.OneDriveRootPath;
-                rootPath = currentUser.DefaultRootPath;
-                Logger.Log($"Using user settings: OneDriveRootPath = {oneDriveBasePath}, DefaultRootPath = {rootPath}");
-            }
-            else
-            {
-                // Fallback to default values or load from environment variables
-                oneDriveBasePath = @"C:\Users\User\OneDrive"; // Replace with your actual path
-                rootPath = Environment.GetEnvironmentVariable("DEFAULT_ROOT_PATH");
-                Logger.Log($"Using default settings: OneDriveRootPath = {oneDriveBasePath}, DefaultRootPath = {rootPath}");
-            }
+            // Use user settings
+            oneDriveBasePath = currentUser.OneDriveRootPath;
+            rootPath = currentUser.DefaultRootPath;
+            Logger.Log($"Using user settings: OneDriveRootPath = {oneDriveBasePath}, DefaultRootPath = {rootPath}");
 
             try
             {
-                if (!string.IsNullOrEmpty(currentUser?.OneDriveRootPath))
+                if (!string.IsNullOrEmpty(currentUser.OneDriveRootPath))
                 {
                     OneDriveIntegration.SetOneDriveRootPath(currentUser.OneDriveRootPath);
                     Logger.Log($"OneDrive root path set to: {currentUser.OneDriveRootPath}");
                 }
                 else
                 {
-                    string defaultPath = @"C:\Users\User\OneDrive"; // Replace with a suitable default
-                    OneDriveIntegration.SetOneDriveRootPath(defaultPath);
-                    Logger.Log($"OneDrive root path set to default: {defaultPath}");
+                    throw new InvalidOperationException("OneDrive root path is not set for the current user.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error setting OneDrive root path: {ex.Message}");
                 Logger.Log($"Error setting OneDrive root path: {ex.Message}");
+                MessageBox.Show($"Error setting OneDrive root path: {ex.Message}", "OneDrive Configuration Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             LoadEmailIdMap();
             LoadRecentEmails();
+
+            try
+            {
+                emailIndexer = new EmailIndexer();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error initializing EmailIndexer: {ex.Message}");
+                MessageBox.Show($"Error initializing search functionality: {ex.Message}", "Indexer Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
             Logger.Log("Exiting CommonInitialization");
         }
 
@@ -594,7 +619,7 @@ namespace EmailViewer
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             SaveEmailIdMap();
-            emailIndexer.Close();
+            emailIndexer?.Dispose();
         }
 
         private async Task InitializeCalendarService()

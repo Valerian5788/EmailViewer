@@ -28,11 +28,6 @@ namespace EmailViewer
         {
             User.OneDriveRootPath = OneDrivePathTextBox.Text;
             User.DefaultRootPath = DefaultRootPathTextBox.Text;
-            string clickUpApiKey = ClickUpApiKeyTextBox.Text;
-            if (!string.IsNullOrEmpty(clickUpApiKey))
-            {
-                User.EncryptedClickUpApiKey = AuthManager.EncryptString(clickUpApiKey);
-            }
 
             _context.SaveChanges();
 
