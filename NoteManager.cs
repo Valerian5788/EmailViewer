@@ -24,7 +24,7 @@ namespace EmailViewer
                 EmailPath = emailPath,
                 Title = title,
                 Content = content,
-                Tags = tags,
+                Tags = tags ?? new List<string>(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -41,7 +41,7 @@ namespace EmailViewer
             {
                 note.Title = title;
                 note.Content = content;
-                note.Tags = tags;
+                note.Tags = tags ?? new List<string>();
                 note.UpdatedAt = DateTime.Now;
                 SaveNotes();
             }
@@ -74,25 +74,14 @@ namespace EmailViewer
             if (File.Exists(NotesFile))
             {
                 string json = File.ReadAllText(NotesFile);
-                var notes = JsonConvert.DeserializeObject<List<Note>>(json) ?? new List<Note>();
-
-                // Ensure all notes have a title
-                foreach (var note in notes)
-                {
-                    if (string.IsNullOrEmpty(note.Title))
-                    {
-                        note.Title = "Untitled Note";
-                    }
-                }
-
-                return notes;
+                return JsonConvert.DeserializeObject<List<Note>>(json) ?? new List<Note>();
             }
             return new List<Note>();
         }
 
         private void SaveNotes()
         {
-            string json = JsonConvert.SerializeObject(_notes);
+            string json = JsonConvert.SerializeObject(_notes, Formatting.Indented);
             File.WriteAllText(NotesFile, json);
         }
     }

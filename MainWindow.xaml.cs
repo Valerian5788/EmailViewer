@@ -122,22 +122,15 @@ namespace EmailViewer
             rootPath = currentUser.DefaultRootPath;
             Logger.Log($"Using user settings: OneDriveRootPath = {oneDriveBasePath}, DefaultRootPath = {rootPath}");
 
-            try
+            // Automatically open the root folder
+            if (!string.IsNullOrEmpty(rootPath) && Directory.Exists(rootPath))
             {
-                if (!string.IsNullOrEmpty(currentUser.OneDriveRootPath))
-                {
-                    OneDriveIntegration.SetOneDriveRootPath(currentUser.OneDriveRootPath);
-                    Logger.Log($"OneDrive root path set to: {currentUser.OneDriveRootPath}");
-                }
-                else
-                {
-                    throw new InvalidOperationException("OneDrive root path is not set for the current user.");
-                }
+                PopulateFolderTreeView();
             }
-            catch (Exception ex)
+            else
             {
-                Logger.Log($"Error setting OneDrive root path: {ex.Message}");
-                MessageBox.Show($"Error setting OneDrive root path: {ex.Message}", "OneDrive Configuration Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Logger.Log($"Root path is invalid or not set: {rootPath}");
+                MessageBox.Show("The root folder path is not set or is invalid. Please update your profile settings.", "Root Folder Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             LoadEmailIdMap();
@@ -245,23 +238,6 @@ namespace EmailViewer
             }
         }
 
-        private void OpenRootFolderButton_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                ValidateNames = false,
-                CheckFileExists = false,
-                CheckPathExists = true,
-                FileName = "Folder Selection.",
-                Title = "Select Root Folder"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                rootPath = Path.GetDirectoryName(openFileDialog.FileName);
-                PopulateFolderTreeView();
-            }
-        }
 
         private void PopulateFolderTreeView()
         {
@@ -426,10 +402,10 @@ namespace EmailViewer
                 return;
             }
 
-            var noteWindow = new NoteWindow(currentEmailPath);
+            var noteWindow = new NoteWindow(currentEmailPath, noteManager);
             if (noteWindow.ShowDialog() == true)
             {
-                LoadNotesForCurrentEmail();
+                RefreshNotesView();
             }
         }
 
@@ -437,22 +413,28 @@ namespace EmailViewer
         {
             if (notesListView.SelectedItem is Note selectedNote)
             {
-                var noteWindow = new NoteWindow(currentEmailPath, selectedNote);
+                var noteWindow = new NoteWindow(currentEmailPath, noteManager, selectedNote);
                 if (noteWindow.ShowDialog() == true)
                 {
-                    LoadNotesForCurrentEmail();
+                    RefreshNotesView();
                 }
                 notesListView.SelectedItem = null;
             }
         }
 
-        private void LoadNotesForCurrentEmail()
+        private void RefreshNotesView()
         {
             if (!string.IsNullOrEmpty(currentEmailPath))
             {
                 var notes = noteManager.GetNotesForEmail(currentEmailPath);
+                notesListView.ItemsSource = null;
                 notesListView.ItemsSource = notes;
             }
+        }
+
+        private void LoadNotesForCurrentEmail()
+        {
+            RefreshNotesView();
         }
 
 

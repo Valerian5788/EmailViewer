@@ -1,0 +1,64 @@
+[
+  {
+    "Id": 1,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "Test d'une note qui reste",
+    "Content": "Je teste voir si la note reste lié à l'email",
+    "CreatedAt": "2024-10-02T10:46:38.2900957+02:00",
+    "UpdatedAt": "2024-10-02T10:57:29.2277296+02:00",
+    "Tags": [
+      "Urgent",
+      "To Do"
+    ],
+    "TagsString": "Urgent, To Do"
+  },
+  {
+    "Id": 2,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "Creation note with tag",
+    "Content": "Will the tag stay ?",
+    "CreatedAt": "2024-10-02T10:58:37.4591518+02:00",
+    "UpdatedAt": "2024-10-02T10:58:37.4591541+02:00",
+    "Tags": [
+      "To Do"
+    ],
+    "TagsString": "To Do"
+  },
+  {
+    "Id": 3,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "Tag testing as usual",
+    "Content": "Je test si le tag est refresh et la note",
+    "CreatedAt": "2024-10-02T11:12:21.0390487+02:00",
+    "UpdatedAt": "2024-10-02T11:12:21.0390534+02:00",
+    "Tags": [
+      "To Do"
+    ],
+    "TagsString": "To Do"
+  },
+  {
+    "Id": 4,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "test refresh",
+    "Content": "refresh ok?",
+    "CreatedAt": "2024-10-02T11:15:55.8132084+02:00",
+    "UpdatedAt": "2024-10-02T11:15:55.8132123+02:00",
+    "Tags": [
+      "To Do",
+      "Urgent"
+    ],
+    "TagsString": "To Do, Urgent"
+  },
+  {
+    "Id": 5,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "refresh again",
+    "Content": "testetetet",
+    "CreatedAt": "2024-10-02T11:27:20.8825238+02:00",
+    "UpdatedAt": "2024-10-02T11:27:20.8825274+02:00",
+    "Tags": [
+      "Urgent"
+    ],
+    "TagsString": "Urgent"
+  }
+]

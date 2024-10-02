@@ -14,11 +14,11 @@ namespace EmailViewer
         private ObservableCollection<string> availableTags;
         private ObservableCollection<string> selectedTags;
 
-        public NoteWindow(string emailPath, Note note = null)
+        public NoteWindow(string emailPath, NoteManager noteManager, Note note = null)
         {
             InitializeComponent();
             this.emailPath = emailPath;
-            noteManager = new NoteManager();
+            this.noteManager = noteManager;
             availableTags = new ObservableCollection<string> { "Urgent", "To Do", "To Treat" };
             selectedTags = new ObservableCollection<string>();
             noteTagsComboBox.ItemsSource = availableTags;
