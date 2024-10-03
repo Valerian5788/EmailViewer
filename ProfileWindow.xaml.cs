@@ -21,13 +21,14 @@ namespace EmailViewer
             EmailTextBox.Text = User.Email;
             OneDrivePathTextBox.Text = User.OneDriveRootPath;
             DefaultRootPathTextBox.Text = User.DefaultRootPath;
-
+            ClickUpWorkspaceIdTextBox.Text = User.ClickUpWorkspaceId;
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             User.OneDriveRootPath = OneDrivePathTextBox.Text;
             User.DefaultRootPath = DefaultRootPathTextBox.Text;
+            User.ClickUpWorkspaceId = ClickUpWorkspaceIdTextBox.Text;
 
             _context.SaveChanges();
 
