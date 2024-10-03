@@ -15,6 +15,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -32,10 +33,12 @@
             <ComboBox x:Name="AssignedToComboBox" Grid.Row="4" Grid.Column="1" Margin="0,5,0,10"/>
             <Label Content="Espace :" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox x:Name="SpaceComboBox" Grid.Row="5" Grid.Column="1" Margin="0,5,0,10"/>
-            <Label Content="Liste :" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
-            <ComboBox x:Name="ListIdComboBox" Grid.Row="6" Grid.Column="1" Margin="0,5,0,10"/>
-            <Label Content="Statut :" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
-            <ComboBox x:Name="StatusComboBox" Grid.Row="7" Grid.Column="1" Margin="0,5,0,10">
+            <Label Content="Folder :" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
+            <ComboBox x:Name="FolderComboBox" Grid.Row="6" Grid.Column="1" Margin="0,5,0,10"/>
+            <Label Content="Liste :" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
+            <ComboBox x:Name="ListIdComboBox" Grid.Row="7" Grid.Column="1" Margin="0,5,0,10"/>
+            <Label Content="Statut :" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
+            <ComboBox x:Name="StatusComboBox" Grid.Row="8" Grid.Column="1" Margin="0,5,0,10">
                 <ComboBoxItem Content="À faire"/>
                 <ComboBoxItem Content="Bloqué"/>
                 <ComboBoxItem Content="Fini"/>
@@ -43,9 +46,9 @@
                 <ComboBoxItem Content="Néant"/>
                 <ComboBoxItem Content="Terminé"/>
             </ComboBox>
-            <Label Content="Description :" Grid.Row="8" Grid.Column="0" VerticalAlignment="Top"/>
-            <TextBox x:Name="DescriptionTextBox" Grid.Row="8" Grid.Column="1" Margin="0,5,0,10" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
-            <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Label Content="Description :" Grid.Row="9" Grid.Column="0" VerticalAlignment="Top"/>
+            <TextBox x:Name="DescriptionTextBox" Grid.Row="9" Grid.Column="1" Margin="0,5,0,10" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                 <Button Content="Créer" Click="CreateButton_Click" Width="80" Margin="0,0,10,0" Padding="5,3"/>
                 <Button Content="Annuler" Click="CancelButton_Click" Width="80" Padding="5,3"/>
             </StackPanel>

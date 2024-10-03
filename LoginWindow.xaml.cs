@@ -13,6 +13,7 @@ using Google.Apis.Auth;
 using Google.Apis.Util.Store;
 using Google.Apis.Util;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace EmailViewer
 {
@@ -31,8 +32,6 @@ namespace EmailViewer
         {
             InitializeComponent();
         }
-
-
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
@@ -98,6 +97,7 @@ namespace EmailViewer
                     {
                         Email = userInfo.Email,
                         GoogleId = userInfo.Subject,
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()) // Generate a random password hash
                     };
                     _context.Users.Add(user);
                 }
@@ -108,6 +108,7 @@ namespace EmailViewer
 
                 await _context.SaveChangesAsync();
                 Logger.Log($"User processed for Google account: {userInfo.Email}");
+
 
                 GoogleLoginSuccessful(user);
             }

@@ -18,6 +18,7 @@ namespace EmailViewer
             SaveConfig(config, password);
         }
 
+
         public static string GetEncrypted(string key, string password)
         {
             var config = LoadConfig(password);

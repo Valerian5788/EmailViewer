@@ -24,15 +24,94 @@ namespace EmailViewer
 
         public async Task<List<ClickUpUser>> GetUsersAsync(string teamId)
         {
-            var response = await _httpClient.GetAsync($"{BASE_URL}/team/{teamId}/user");
+            var response = await _httpClient.GetAsync($"{BASE_URL}/team");
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception($"ClickUp API error: {response.StatusCode}, {content}");
             }
-            var usersResponse = JsonConvert.DeserializeAnonymousType(content, new { users = new List<ClickUpUser>() });
-            return usersResponse.users;
+
+            var teamsResponse = JsonConvert.DeserializeAnonymousType(content, new { teams = new List<TeamInfo>() });
+
+            // Find the team that matches the provided teamId
+            var team = teamsResponse.teams.FirstOrDefault(t => t.id == teamId);
+            if (team == null)
+            {
+                throw new Exception($"Team with ID {teamId} not found in the response");
+            }
+
+            return team.members.Select(m => new ClickUpUser
+            {
+                Id = m.user.id.ToString(),
+                Username = m.user.username,
+                Email = m.user.email
+            }).ToList();
         }
+
+        // Helper classes to deserialize the JSON response
+        private class TeamInfo
+        {
+            public string id { get; set; }
+            public List<MemberInfo> members { get; set; }
+        }
+
+        private class MemberInfo
+        {
+            public UserInfo user { get; set; }
+        }
+
+        private class UserInfo
+        {
+            public int id { get; set; }
+            public string username { get; set; }
+            public string email { get; set; }
+        }
+
+        public async Task<List<ClickUpSpaceWithFoldersAndLists>> GetSpacesWithFoldersAndListsAsync(string workspaceId)
+        {
+            var spaces = await GetSpacesAsync(workspaceId);
+            var spacesWithFoldersAndLists = new List<ClickUpSpaceWithFoldersAndLists>();
+
+            foreach (var space in spaces)
+            {
+                var folders = await GetFoldersAsync(space.Id);
+                var listsNotInFolders = await GetListsAsync(space.Id);
+
+                spacesWithFoldersAndLists.Add(new ClickUpSpaceWithFoldersAndLists
+                {
+                    Space = space,
+                    Folders = folders,
+                    ListsNotInFolders = listsNotInFolders
+                });
+            }
+
+            return spacesWithFoldersAndLists;
+        }
+
+        public async Task<List<ClickUpFolder>> GetFoldersAsync(string spaceId)
+        {
+            var response = await _httpClient.GetAsync($"{BASE_URL}/space/{spaceId}/folder");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"ClickUp API error: {response.StatusCode}, {content}");
+            }
+            var foldersResponse = JsonConvert.DeserializeAnonymousType(content, new { folders = new List<ClickUpFolder>() });
+            return foldersResponse.folders;
+        }
+
+        public async Task<List<ClickUpList>> GetListsInFolderAsync(string folderId)
+        {
+            var response = await _httpClient.GetAsync($"{BASE_URL}/folder/{folderId}/list");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"ClickUp API error: {response.StatusCode}, {content}");
+            }
+            var listsResponse = JsonConvert.DeserializeAnonymousType(content, new { lists = new List<ClickUpList>() });
+            return listsResponse.lists;
+        }
+
 
         public async Task<List<ClickUpSpace>> GetSpacesAsync(string workspaceId)
         {
@@ -100,6 +179,25 @@ namespace EmailViewer
                 default: return "open";
             }
         }
+    }
+
+
+    public class ClickUpSpaceWithFoldersAndLists
+    {
+        public ClickUpSpace Space { get; set; }
+        public List<ClickUpFolder> Folders { get; set; }
+        public List<ClickUpList> ListsNotInFolders { get; set; }
+    }
+
+    public class ClickUpFolder
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+    public class ClickUpSpaceWithLists
+    {
+        public ClickUpSpace Space { get; set; }
+        public List<ClickUpList> Lists { get; set; }
     }
 
     public class ClickUpUser

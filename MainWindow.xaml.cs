@@ -14,6 +14,7 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Diagnostics;
+using Google.Apis.Auth.OAuth2.Flows;
 
 namespace EmailViewer
 {
@@ -28,7 +29,6 @@ namespace EmailViewer
         private ObservableCollection<string> availableTags;
         private ObservableCollection<string> selectedTags;
         private ClickUpIntegration clickUpIntegration;
-        //private string decryptedClickUpApiKey;
         private string oneDriveBasePath;
         private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
         private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
@@ -69,8 +69,6 @@ namespace EmailViewer
                 MessageBox.Show($"An error occurred during initialization: {ex.Message}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            // Initialize calendar service
-            _ = InitializeCalendarService();  // Fire and forget
 
             Logger.Log(emailId == null ? "MainWindow opened without parameter" : "MainWindow opened with parameter");
             Logger.Log($"Exiting MainWindow constructor, currentUser: {currentUser?.Email ?? "null"}");
@@ -110,6 +108,7 @@ namespace EmailViewer
                     Logger.Log("Failed to retrieve ClickUp API key");
                     MessageBox.Show("Failed to retrieve ClickUp API key. Some features may not work.");
                 }
+           
             }
             else
             {
@@ -149,14 +148,6 @@ namespace EmailViewer
             Logger.Log("Exiting CommonInitialization");
         }
 
-        private string DecryptClickUpApiKey(string encryptedApiKey)
-        {
-            if (string.IsNullOrEmpty(encryptedApiKey))
-            {
-                return null;
-            }
-            return AuthManager.DecryptString(encryptedApiKey);
-        }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
@@ -439,53 +430,6 @@ namespace EmailViewer
 
 
 
-
-        //private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (string.IsNullOrEmpty(currentEmailPath))
-        //    {
-        //        MessageBox.Show("Veuillez sélectionner un email d'abord.");
-        //        return;
-        //    }
-
-        //    try
-        //    {
-        //        // Comment out OneDrive-related code
-        //        /*
-        //        // Ensure the email is in the OneDrive folder
-        //        if (!currentEmailPath.StartsWith(oneDriveBasePath))
-        //        {
-        //            MessageBox.Show("L'email doit être dans un dossier OneDrive synchronisé.");
-        //            return;
-        //        }
-
-        //        // Generate a relative path for the email within OneDrive
-        //        string relativePath = currentEmailPath.Substring(oneDriveBasePath.Length).TrimStart('\\', '/');
-        //        string oneDriveLink = $"https://onedrive.live.com/edit.aspx?resid=YOUR_RESOURCE_ID&cid=YOUR_CID&path=/{Uri.EscapeDataString(relativePath)}";
-        //        */
-
-        //        // For testing, use the local file path instead of OneDrive link
-        //        string localEmailLink = $"file://{Uri.EscapeDataString(currentEmailPath)}";
-        //        Console.WriteLine($"Local Email Link: {localEmailLink}");
-
-        //        var taskWindow = new TaskCreationWindow(currentEmailPath);
-        //        if (taskWindow.ShowDialog() == true)
-        //        {
-        //            string clickUpListId = "901506764736";
-        //            Console.WriteLine($"ClickUp List ID: {clickUpListId}");
-        //            Console.WriteLine($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
-
-        //            string taskId = await clickUpIntegration.CreateTaskAsync(clickUpListId, taskWindow.TaskDetails, localEmailLink);
-
-        //            MessageBox.Show($"Tâche créée avec succès dans ClickUp! ID de la tâche: {taskId}");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Erreur détaillée lors de la création de la tâche : {ex.Message}\n\nStack Trace: {ex.StackTrace}");
-        //    }
-        //}
-
         private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(currentEmailPath))
@@ -500,7 +444,7 @@ namespace EmailViewer
                 var users = await clickUpIntegration.GetUsersAsync(currentUser.ClickUpWorkspaceId);
                 var spaces = await clickUpIntegration.GetSpacesAsync(currentUser.ClickUpWorkspaceId);
 
-                var taskWindow = new TaskCreationWindow(currentEmailPath, users, spaces, clickUpIntegration);
+                var taskWindow = new TaskCreationWindow(currentEmailPath, users, currentUser.ClickUpWorkspaceId, clickUpIntegration);
                 if (taskWindow.ShowDialog() == true)
                 {
                     Logger.Log($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
@@ -517,74 +461,6 @@ namespace EmailViewer
             }
         }
 
-        private string SelectExcelFile()
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm",
-                Title = "Sélectionner le fichier Excel"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                return openFileDialog.FileName;
-            }
-
-            return null;
-        }
-
-        //private void CreateExcelTask(TaskDetails taskDetails, string excelFilePath)
-        //{
-        //    Excel.Application excelApp = null;
-        //    Excel.Workbook workbook = null;
-        //    Excel.Worksheet worksheet = null;
-
-        //    try
-        //    {
-        //        excelApp = new Excel.Application();
-        //        excelApp.DisplayAlerts = false; // Disable alerts
-        //        workbook = excelApp.Workbooks.Open(excelFilePath, ReadOnly: false, Editable: true);
-        //        worksheet = workbook.Worksheets["To Do"]; // Use the "To Do" sheet
-
-        //        // Find the next available row starting from row 5
-        //        int newRow = 5;
-        //        while (!string.IsNullOrWhiteSpace(Convert.ToString(worksheet.Cells[newRow, 1].Value)))
-        //        {
-        //            newRow++;
-        //        }
-
-        //        worksheet.Cells[newRow, 1] = taskDetails.Date;
-        //        worksheet.Cells[newRow, 2] = taskDetails.RequestedBy;
-        //        worksheet.Cells[newRow, 3] = taskDetails.TaskDescription;
-        //        worksheet.Cells[newRow, 4] = taskDetails.Document;
-        //        worksheet.Cells[newRow, 5] = taskDetails.AssignedTo;
-        //        worksheet.Cells[newRow, 6] = ""; // Leave column F empty
-        //        worksheet.Cells[newRow, 7] = taskDetails.Id.ToString(); // Add GUID to column G
-        //        worksheet.Cells[newRow, 8] = taskDetails.Status;
-
-        //        workbook.Save();
-        //        MessageBox.Show("Tâche créée avec succès !");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"Erreur lors de la création de la tâche : {ex.Message}");
-        //    }
-        //    finally
-        //    {
-        //        if (excelApp != null) excelApp.DisplayAlerts = true; // Re-enable alerts
-        //        if (worksheet != null) Marshal.ReleaseComObject(worksheet);
-        //        if (workbook != null)
-        //        {
-        //            workbook.Close(true);
-        //            Marshal.ReleaseComObject(workbook);
-        //        }
-        //        if (excelApp != null)
-        //        {
-        //            excelApp.Quit();
-        //            Marshal.ReleaseComObject(excelApp);
-        //        }
-        //    }
-        //}
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)
         {
@@ -604,46 +480,40 @@ namespace EmailViewer
             emailIndexer?.Dispose();
         }
 
-        private async Task InitializeCalendarService()
+        private async Task<CalendarService> InitializeCalendarServiceAsync()
         {
-            if (calendarService != null) return; // Already initialized
-
-            UserCredential credential;
-            using (var stream = new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+            try
             {
-                string credPath = "token.json";
-                credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.FromStream(stream).Secrets,
-                    new[] { Google.Apis.Calendar.v3.CalendarService.Scope.CalendarEvents },
-                    "user",
+                if (string.IsNullOrEmpty(currentUser.GoogleId))
+                {
+                    Logger.Log("No Google ID found for the current user");
+                    return null;
+                }
+
+                var clientSecrets = new ClientSecrets
+                {
+                    ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID"),
+                    ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET")
+                };
+
+                var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    clientSecrets,
+                    new[] { CalendarService.Scope.CalendarEvents },
+                    currentUser.GoogleId,
                     CancellationToken.None,
-                    new FileDataStore(credPath, true));
+                    new FileDataStore("Calendar.ApiClient"));
+
+                return new CalendarService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Email Viewer",
+                });
             }
-            calendarService = new Google.Apis.Calendar.v3.CalendarService(new BaseClientService.Initializer()
+            catch (Exception ex)
             {
-                HttpClientInitializer = credential,
-                ApplicationName = "Email Viewer",
-            });
-        }
-
-        private async void QuickAddToCalendar_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(currentEmailPath))
-            {
-                MessageBox.Show("Please select an email first.");
-                return;
+                Logger.Log($"Error initializing Google Calendar service: {ex.Message}");
+                return null;
             }
-
-            var message = MimeMessage.Load(currentEmailPath);
-            string subject = message.Subject;
-            string body = message.TextBody;
-
-            string encodedSubject = Uri.EscapeDataString(subject);
-            string encodedBody = Uri.EscapeDataString(body);
-
-            string url = $"https://www.google.com/calendar/render?action=TEMPLATE&text={encodedSubject}&details={encodedBody}";
-
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
         }
 
         private async void CreateDetailedEvent_Click(object sender, RoutedEventArgs e)
@@ -654,35 +524,81 @@ namespace EmailViewer
                 return;
             }
 
-            if (calendarService == null)
+            try
             {
-                await InitializeCalendarService(); // Ensure calendar service is initialized
-            }
+                var message = MimeKit.MimeMessage.Load(currentEmailPath);
+                var eventWindow = new EventCreationWindow(message.Subject, message.TextBody);
 
-            var message = MimeMessage.Load(currentEmailPath);
-            var eventWindow = new EventCreationWindow(message.Subject, message.TextBody);
-
-            if (eventWindow.ShowDialog() == true)
-            {
-                try
+                if (eventWindow.ShowDialog() == true)
                 {
-                    var newEvent = new Google.Apis.Calendar.v3.Data.Event
+                    var calendarService = await InitializeCalendarServiceAsync();
+                    if (calendarService == null)
+                    {
+                        MessageBox.Show("Failed to initialize calendar service. Please check your Google authentication.");
+                        return;
+                    }
+
+                    var newEvent = new Event
                     {
                         Summary = eventWindow.EventTitle,
                         Description = eventWindow.EventDescription,
-                        Start = new Google.Apis.Calendar.v3.Data.EventDateTime { DateTime = eventWindow.StartDateTime },
-                        End = new Google.Apis.Calendar.v3.Data.EventDateTime { DateTime = eventWindow.EndDateTime },
+                        Start = new EventDateTime { DateTime = eventWindow.StartDateTime },
+                        End = new EventDateTime { DateTime = eventWindow.EndDateTime },
                     };
 
                     var createdEvent = await calendarService.Events.Insert(newEvent, "primary").ExecuteAsync();
                     MessageBox.Show($"Event created: {createdEvent.HtmlLink}");
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error creating event: {ex.Message}");
-                    Logger.Log($"Error creating calendar event: {ex}");
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error creating event: {ex.Message}");
+                Logger.Log($"Error creating calendar event: {ex}");
             }
         }
+
+        private void QuickAddToCalendar_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentEmailPath))
+            {
+                MessageBox.Show("Please select an email first.");
+                return;
+            }
+
+            try
+            {
+                var message = MimeKit.MimeMessage.Load(currentEmailPath);
+                string subject = message.Subject ?? "No Subject";
+                string body = message.TextBody ?? "";
+
+                // Limit the body length to avoid excessively long URLs
+                if (body.Length > 500)
+                {
+                    body = body.Substring(0, 500) + "...";
+                }
+
+                string encodedSubject = Uri.EscapeDataString(subject);
+                string encodedBody = Uri.EscapeDataString(body);
+
+                // Use the email date as the default event date
+                string date = message.Date.ToString("yyyyMMdd");
+
+                string url = $"https://www.google.com/calendar/render?action=TEMPLATE&text={encodedSubject}&details={encodedBody}&dates={date}/{date}";
+
+                // Use ProcessStartInfo to open the default browser
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error adding event to calendar: {ex.Message}");
+                Logger.Log($"Error in QuickAddToCalendar_Click: {ex}");
+            }
+        }
+
     }
 }

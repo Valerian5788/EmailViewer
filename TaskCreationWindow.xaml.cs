@@ -10,17 +10,16 @@ namespace EmailViewer
     {
         public TaskDetails TaskDetails { get; private set; }
         private List<ClickUpUser> users;
-        private List<ClickUpSpace> spaces;
+        private List<ClickUpSpaceWithFoldersAndLists> spacesWithFoldersAndLists;
         private ClickUpIntegration clickUpIntegration;
 
-        public TaskCreationWindow(string documentPath, List<ClickUpUser> users, List<ClickUpSpace> spaces, ClickUpIntegration clickUpIntegration)
+        public TaskCreationWindow(string documentPath, List<ClickUpUser> users, string workspaceId, ClickUpIntegration clickUpIntegration)
         {
             InitializeComponent();
             DatePicker.SelectedDate = DateTime.Now;
             DocumentTextBox.Text = documentPath;
 
             this.users = users;
-            this.spaces = spaces;
             this.clickUpIntegration = clickUpIntegration;
 
             // Populate ComboBoxes
@@ -32,22 +31,71 @@ namespace EmailViewer
             AssignedToComboBox.DisplayMemberPath = "Username";
             AssignedToComboBox.SelectedValuePath = "Id";
 
-            SpaceComboBox.ItemsSource = spaces;
-            SpaceComboBox.DisplayMemberPath = "Name";
-            SpaceComboBox.SelectedValuePath = "Id";
+            LoadSpacesAndFoldersAndLists(workspaceId);
 
             SpaceComboBox.SelectionChanged += SpaceComboBox_SelectionChanged;
+            FolderComboBox.SelectionChanged += FolderComboBox_SelectionChanged;
         }
 
-        private async void SpaceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void LoadSpacesAndFoldersAndLists(string workspaceId)
+        {
+            try
+            {
+                spacesWithFoldersAndLists = await clickUpIntegration.GetSpacesWithFoldersAndListsAsync(workspaceId);
+                SpaceComboBox.ItemsSource = spacesWithFoldersAndLists.Select(s => s.Space);
+                SpaceComboBox.DisplayMemberPath = "Name";
+                SpaceComboBox.SelectedValuePath = "Id";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading spaces, folders, and lists: {ex.Message}");
+            }
+        }
+
+        private void SpaceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (SpaceComboBox.SelectedItem is ClickUpSpace selectedSpace)
             {
-                var lists = await clickUpIntegration.GetListsAsync(selectedSpace.Id);
-                ListIdComboBox.ItemsSource = lists;
-                ListIdComboBox.DisplayMemberPath = "Name";
-                ListIdComboBox.SelectedValuePath = "Id";
+                var spaceWithFoldersAndLists = spacesWithFoldersAndLists.FirstOrDefault(s => s.Space.Id == selectedSpace.Id);
+                if (spaceWithFoldersAndLists != null)
+                {
+                    FolderComboBox.ItemsSource = new List<object> { new { Id = "", Name = "No Folder" } }
+                        .Concat(spaceWithFoldersAndLists.Folders.Cast<object>());
+                    FolderComboBox.DisplayMemberPath = "Name";
+                    FolderComboBox.SelectedValuePath = "Id";
+                    FolderComboBox.SelectedIndex = 0; // Select "No Folder" by default
+
+                    UpdateListComboBox(spaceWithFoldersAndLists.ListsNotInFolders);
+                }
             }
+        }
+
+        private async void FolderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (FolderComboBox.SelectedItem is ClickUpFolder selectedFolder)
+            {
+                var lists = await clickUpIntegration.GetListsInFolderAsync(selectedFolder.Id);
+                UpdateListComboBox(lists);
+            }
+            else if (FolderComboBox.SelectedIndex == 0) // "No Folder" selected
+            {
+                var selectedSpace = SpaceComboBox.SelectedItem as ClickUpSpace;
+                if (selectedSpace != null)
+                {
+                    var spaceWithFoldersAndLists = spacesWithFoldersAndLists.FirstOrDefault(s => s.Space.Id == selectedSpace.Id);
+                    if (spaceWithFoldersAndLists != null)
+                    {
+                        UpdateListComboBox(spaceWithFoldersAndLists.ListsNotInFolders);
+                    }
+                }
+            }
+        }
+
+        private void UpdateListComboBox(List<ClickUpList> lists)
+        {
+            ListIdComboBox.ItemsSource = lists;
+            ListIdComboBox.DisplayMemberPath = "Name";
+            ListIdComboBox.SelectedValuePath = "Id";
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)

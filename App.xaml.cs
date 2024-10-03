@@ -7,6 +7,7 @@ using EmailViewer.Data;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace EmailViewer
 {
