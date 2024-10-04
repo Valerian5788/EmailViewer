@@ -33,10 +33,7 @@ namespace EmailViewer
         private Dictionary<string, string> emailIdMap = new Dictionary<string, string>();
         private const string EMAIL_ID_MAP_FILE = "emailIdMap.json";
         private User currentUser;
-        private Google.Apis.Calendar.v3.CalendarService calendarService;
         private EmailIndexer emailIndexer;
-        private Dictionary<string, string> userIdMap;
-        private Dictionary<string, string> listIdMap;
         private string _ClickUpApiKey;
 
         
