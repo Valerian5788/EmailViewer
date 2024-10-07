@@ -4,6 +4,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using EmailViewer.Helpers;
+using System.Windows;
 
 namespace EmailViewer.Services
 {
@@ -86,6 +88,35 @@ namespace EmailViewer.Services
             }
 
             return spacesWithFoldersAndLists;
+        }
+
+        public async Task<bool> ShowTaskCreationWindowAsync(string currentEmailPath, string workspaceId)
+        {
+            try
+            {
+                Logger.Log($"Current Email Path: {currentEmailPath}");
+
+                var users = await GetUsersAsync(workspaceId);
+                var spaces = await GetSpacesAsync(workspaceId);
+
+                var taskWindow = new TaskCreationWindow(currentEmailPath, users, workspaceId, this);
+                if (taskWindow.ShowDialog() == true)
+                {
+                    Logger.Log($"Task Details: {JsonConvert.SerializeObject(taskWindow.TaskDetails)}");
+
+                    string taskId = await CreateTaskAsync(taskWindow.TaskDetails, currentEmailPath);
+                    Logger.Log($"Task created successfully. Task ID: {taskId}");
+                    MessageBox.Show($"Task created successfully in ClickUp! Task ID: {taskId}");
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error creating task: {ex.Message}\n\nStack Trace: {ex.StackTrace}");
+                MessageBox.Show($"Detailed error when creating task: {ex.Message}\n\nStack Trace: {ex.StackTrace}");
+                return false;
+            }
         }
 
         public async Task<List<ClickUpFolder>> GetFoldersAsync(string spaceId)

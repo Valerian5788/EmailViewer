@@ -23,6 +23,7 @@ namespace EmailViewer
         private readonly AppDbContext _context = new AppDbContext();
         private static string ClientId => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
         private static string ClientSecret => Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+        private readonly UserService _userService;
 
         public User LoggedInUser { get; private set; }
 
@@ -32,99 +33,39 @@ namespace EmailViewer
         public LoginWindow()
         {
             InitializeComponent();
+            _userService = new UserService(new AppDbContext());
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == EmailTextBox.Text);
-            if (user != null && BCrypt.Net.BCrypt.Verify(PasswordBox.Password, user.PasswordHash))
+            try
             {
-                LoginSuccessful(user);
+                var user = await _userService.AuthenticateUser(EmailTextBox.Text, PasswordBox.Password);
+                if (user != null)
+                {
+                    LoginSuccessful(user);
+                }
+                else
+                {
+                    MessageBox.Show("Invalid email or password");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Invalid email or password");
+                MessageBox.Show($"An error occurred during login: {ex.Message}");
             }
         }
 
         private async void GoogleLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_rateLimiter.ShouldAllow("GoogleLogin"))
-            {
-                Logger.Log("Too many login attempts. Please try again later.");
-                MessageBox.Show("Too many login attempts. Please try again later.");
-                return;
-            }
-
             try
             {
-                if (string.IsNullOrEmpty(ClientId) || string.IsNullOrEmpty(ClientSecret))
-                {
-                    Logger.Log("Google Client ID or Client Secret is missing. Please check your environment variables.");
-                    MessageBox.Show("Google Client ID or Client Secret is missing. Please check your application settings.");
-                    return;
-                }
-
-                var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-                {
-                    ClientSecrets = new ClientSecrets
-                    {
-                        ClientId = ClientId,
-                        ClientSecret = ClientSecret
-                    },
-                    Scopes = new[] { "email", "profile", "https://www.googleapis.com/auth/calendar.events" },
-                    DataStore = new FileDataStore("GoogleAuth")
-                });
-
-                await flow.DeleteTokenAsync("user", CancellationToken.None);
-
-                var credential = await new Google.Apis.Auth.OAuth2.AuthorizationCodeInstalledApp(flow, new LocalServerCodeReceiver()).AuthorizeAsync("user", CancellationToken.None);
-
-                if (credential == null || string.IsNullOrEmpty(credential.Token.IdToken))
-                {
-                    Logger.Log("Failed to obtain Google credential.");
-                    MessageBox.Show("Failed to authenticate with Google. Please try again.");
-                    return;
-                }
-
-                var userInfo = await GoogleJsonWebSignature.ValidateAsync(credential.Token.IdToken);
-                Logger.Log($"Successfully authenticated Google user: {userInfo.Email}");
-
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userInfo.Email);
-
-                if (user == null)
-                {
-                    user = new User
-                    {
-                        Email = userInfo.Email,
-                        GoogleId = userInfo.Subject,
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()) // Generate a random password hash
-                    };
-                    _context.Users.Add(user);
-                }
-                else if (string.IsNullOrEmpty(user.GoogleId))
-                {
-                    user.GoogleId = userInfo.Subject;
-                }
-
-                await _context.SaveChangesAsync();
-                Logger.Log($"User processed for Google account: {userInfo.Email}");
-
-
+                var user = await _userService.AuthenticateGoogleUser();
                 GoogleLoginSuccessful(user);
             }
             catch (Exception ex)
             {
-                Logger.Log($"Google login failed: {ex.Message}");
-                Logger.Log($"Exception type: {ex.GetType().Name}");
-                Logger.Log($"Stack Trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Logger.Log($"Inner exception: {ex.InnerException.Message}");
-                    Logger.Log($"Inner exception type: {ex.InnerException.GetType().Name}");
-                    Logger.Log($"Inner exception stack trace: {ex.InnerException.StackTrace}");
-                }
-                MessageBox.Show($"An unexpected error occurred during Google login: {ex.Message}. Please try again.");
+                MessageBox.Show($"An error occurred during Google login: {ex.Message}");
             }
         }
 
@@ -133,9 +74,7 @@ namespace EmailViewer
             LoggedInUser = user;
             if (RememberMeCheckBox.IsChecked == true)
             {
-                user.RememberMeToken = Guid.NewGuid().ToString();
-                _context.SaveChanges();
-                AuthManager.SaveAuthToken(user.RememberMeToken);
+                _userService.SaveRememberMeToken(user);
             }
             DialogResult = true;
             Close();
@@ -144,9 +83,7 @@ namespace EmailViewer
         private void GoogleLoginSuccessful(User user)
         {
             LoggedInUser = user;
-            user.RememberMeToken = Guid.NewGuid().ToString();
-            _context.SaveChanges();
-            AuthManager.SaveAuthToken(user.RememberMeToken);
+            _userService.SaveRememberMeToken(user);
             DialogResult = true;
             Close();
         }

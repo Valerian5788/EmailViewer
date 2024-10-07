@@ -9,11 +9,13 @@ namespace EmailViewer.Services
 {
     public class NoteManager
     {
-        private const string NotesFile = "notes.json";
+        private const string DefaultNotesFile = "notes.json";
+        private readonly string _notesFile;
         private List<Note> _notes;
 
-        public NoteManager()
+        public NoteManager(string notesFile = DefaultNotesFile)
         {
+            _notesFile = notesFile;
             _notes = LoadNotes();
         }
 
@@ -72,9 +74,9 @@ namespace EmailViewer.Services
 
         private List<Note> LoadNotes()
         {
-            if (File.Exists(NotesFile))
+            if (File.Exists(_notesFile))
             {
-                string json = File.ReadAllText(NotesFile);
+                string json = File.ReadAllText(_notesFile);
                 return JsonConvert.DeserializeObject<List<Note>>(json) ?? new List<Note>();
             }
             return new List<Note>();
@@ -83,7 +85,7 @@ namespace EmailViewer.Services
         private void SaveNotes()
         {
             string json = JsonConvert.SerializeObject(_notes, Formatting.Indented);
-            File.WriteAllText(NotesFile, json);
+            File.WriteAllText(_notesFile, json);
         }
     }
 }
