@@ -179,3 +179,4 @@ C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\obj\Debug\net8.0-windows\
 C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\obj\Debug\net8.0-windows\EmailViewer.Tests.pdb
 C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\obj\Debug\net8.0-windows\EmailViewer.Tests.genruntimeconfig.cache
 C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\obj\Debug\net8.0-windows\ref\EmailViewer.Tests.dll
+C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\obj\Debug\net8.0-windows\EmailViewer.Tests.sourcelink.json

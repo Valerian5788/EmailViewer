@@ -40,7 +40,7 @@ namespace EmailViewer.Services
                             Client = clientName,
                             Project = projectName,
                             Subject = email.Subject,
-                            Sender = email.From.ToString(),
+                            Sender = ExtractEmailAddress(email.From.Mailboxes.FirstOrDefault()?.Address),
                             Date = email.Date.DateTime
                         });
                     }
@@ -52,12 +52,19 @@ namespace EmailViewer.Services
 
         private bool MatchesSearchCriteria(MimeMessage email, string searchTerm, string client, string project, DateTime? startDate, DateTime? endDate, string sender, string clientName, string projectName)
         {
+            var senderEmail = ExtractEmailAddress(email.From.Mailboxes.FirstOrDefault()?.Address);
+
             return (string.IsNullOrEmpty(searchTerm) || email.TextBody.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || email.Subject.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 && (string.IsNullOrEmpty(client) || clientName.Equals(client, StringComparison.OrdinalIgnoreCase))
                 && (string.IsNullOrEmpty(project) || projectName.Equals(project, StringComparison.OrdinalIgnoreCase))
                 && (!startDate.HasValue || email.Date.DateTime >= startDate.Value)
                 && (!endDate.HasValue || email.Date.DateTime <= endDate.Value)
-                && (string.IsNullOrEmpty(sender) || email.From.ToString().Contains(sender, StringComparison.OrdinalIgnoreCase));
+                && (string.IsNullOrEmpty(sender) || senderEmail.Equals(sender, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private string ExtractEmailAddress(string fullAddress)
+        {
+            return fullAddress?.Split('<', '>').FirstOrDefault(part => part.Contains("@")) ?? fullAddress;
         }
     }
 }

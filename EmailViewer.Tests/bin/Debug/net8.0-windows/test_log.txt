@@ -1,14 +1,14 @@
-2024-10-07 15:35:47.258 - NoteManagerTests constructor started
-2024-10-07 15:35:47.259 - Full path of test notes file: C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\bin\Debug\net8.0-windows\test_notes.json
-2024-10-07 15:35:47.259 - Original content of test notes file backed up
-2024-10-07 15:35:47.259 - Empty array written to test notes file
-2024-10-07 15:35:47.260 - NoteManager instance created
-2024-10-07 15:35:47.260 - Test setup complete. File exists: True
-2024-10-07 15:35:47.260 - File content: []
-2024-10-07 15:35:47.261 - UpdateNote_ShouldModifyExistingNote test started
-2024-10-07 15:35:47.261 - Updated note: {"Id":1,"EmailPath":"test@example.com","Title":"Updated Title","Content":"Updated Content","CreatedAt":"2024-10-07T15:35:47.2612739+02:00","UpdatedAt":"2024-10-07T15:35:47.2616542+02:00","Tags":["Updated","Important"],"TagsString":"Updated, Important"}
-2024-10-07 15:35:47.262 - UpdateNote_ShouldModifyExistingNote test completed
-2024-10-07 15:35:47.262 - Dispose method called
-2024-10-07 15:35:47.266 - Original content restored to test notes file
-2024-10-07 15:35:47.266 - Dispose complete. File exists: True
-2024-10-07 15:35:47.267 - File content: []
+2024-10-07 18:09:57.733 - NoteManagerTests constructor started
+2024-10-07 18:09:57.733 - Full path of test notes file: C:\Users\User\Documents\Email Viewer\EmailViewer.Tests\bin\Debug\net8.0-windows\test_notes.json
+2024-10-07 18:09:57.733 - Original content of test notes file backed up
+2024-10-07 18:09:57.734 - Empty array written to test notes file
+2024-10-07 18:09:57.734 - NoteManager instance created
+2024-10-07 18:09:57.735 - Test setup complete. File exists: True
+2024-10-07 18:09:57.735 - File content: []
+2024-10-07 18:09:57.736 - UpdateNote_ShouldModifyExistingNote test started
+2024-10-07 18:09:57.737 - Updated note: {"Id":1,"EmailPath":"test@example.com","Title":"Updated Title","Content":"Updated Content","CreatedAt":"2024-10-07T18:09:57.736505+02:00","UpdatedAt":"2024-10-07T18:09:57.7369648+02:00","Tags":["Updated","Important"],"TagsString":"Updated, Important"}
+2024-10-07 18:09:57.737 - UpdateNote_ShouldModifyExistingNote test completed
+2024-10-07 18:09:57.737 - Dispose method called
+2024-10-07 18:09:57.743 - Original content restored to test notes file
+2024-10-07 18:09:57.744 - Dispose complete. File exists: True
+2024-10-07 18:09:57.744 - File content: []
