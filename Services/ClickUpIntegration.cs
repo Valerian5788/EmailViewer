@@ -11,20 +11,20 @@ namespace EmailViewer.Services
 {
     public class ClickUpIntegration
     {
-        private readonly HttpClient _httpClient;
+        protected readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private const string BASE_URL = "https://api.clickup.com/api/v2";
         private Func<string, string> getOrCreateEmailId;
 
-        public ClickUpIntegration(Func<string, string> getOrCreateEmailIdFunc, string apiKey)
+        public ClickUpIntegration(Func<string, string> getOrCreateEmailIdFunc, string apiKey, HttpClient httpClient = null)
         {
-            _httpClient = new HttpClient();
+            _httpClient = httpClient ?? new HttpClient();
             _apiKey = apiKey;
             _httpClient.DefaultRequestHeaders.Add("Authorization", _apiKey);
             getOrCreateEmailId = getOrCreateEmailIdFunc;
         }
 
-        public async Task<List<ClickUpUser>> GetUsersAsync(string teamId)
+        public virtual async Task<List<ClickUpUser>> GetUsersAsync(string teamId)
         {
             var response = await _httpClient.GetAsync($"{BASE_URL}/team");
             var content = await response.Content.ReadAsStringAsync();
@@ -119,7 +119,7 @@ namespace EmailViewer.Services
             }
         }
 
-        public async Task<List<ClickUpFolder>> GetFoldersAsync(string spaceId)
+        public virtual async Task<List<ClickUpFolder>> GetFoldersAsync(string spaceId)
         {
             var response = await _httpClient.GetAsync($"{BASE_URL}/space/{spaceId}/folder");
             var content = await response.Content.ReadAsStringAsync();
@@ -144,7 +144,7 @@ namespace EmailViewer.Services
         }
 
 
-        public async Task<List<ClickUpSpace>> GetSpacesAsync(string workspaceId)
+        public virtual async Task<List<ClickUpSpace>> GetSpacesAsync(string workspaceId)
         {
             var response = await _httpClient.GetAsync($"{BASE_URL}/team/{workspaceId}/space");
             var content = await response.Content.ReadAsStringAsync();
@@ -156,7 +156,7 @@ namespace EmailViewer.Services
             return spacesResponse.spaces;
         }
 
-        public async Task<List<ClickUpList>> GetListsAsync(string spaceId)
+        public virtual async Task<List<ClickUpList>> GetListsAsync(string spaceId)
         {
             var response = await _httpClient.GetAsync($"{BASE_URL}/space/{spaceId}/list");
             var content = await response.Content.ReadAsStringAsync();
@@ -168,7 +168,7 @@ namespace EmailViewer.Services
             return listsResponse.lists;
         }
 
-        public async Task<string> CreateTaskAsync(TaskDetails taskDetails, string emailPath)
+        public virtual async Task<string> CreateTaskAsync(TaskDetails taskDetails, string emailPath)
         {
             string emailId = getOrCreateEmailId(emailPath);
             string customUrl = $"emailviewer:open?id={Uri.EscapeDataString(emailId)}";

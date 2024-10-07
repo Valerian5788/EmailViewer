@@ -15,10 +15,12 @@ namespace EmailViewer.Services
     public class EmailViewerCalendarService
     {
         private readonly User currentUser;
+        private readonly Func<string, bool> _urlOpener;
 
-        public EmailViewerCalendarService(User user)
+        public EmailViewerCalendarService(User user, Func<string, bool> urlOpener = null)
         {
             currentUser = user;
+            _urlOpener = urlOpener ?? DefaultUrlOpener;
         }
 
         public async Task<CalendarService> InitializeCalendarServiceAsync()
@@ -76,7 +78,7 @@ namespace EmailViewer.Services
             return await calendarService.Events.Insert(newEvent, "primary").ExecuteAsync();
         }
 
-        public void QuickAddToCalendar(string subject, string body, DateTime emailDate)
+        public bool QuickAddToCalendar(string subject, string body, DateTime emailDate)
         {
             try
             {
@@ -96,18 +98,30 @@ namespace EmailViewer.Services
 
                 string url = $"https://www.google.com/calendar/render?action=TEMPLATE&text={encodedSubject}&details={encodedBody}&dates={date}/{date}";
 
-                // Use ProcessStartInfo to open the default browser
+                return _urlOpener(url);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error in QuickAddToCalendar: {ex}");
+                return false;
+            }
+        }
+
+        private bool DefaultUrlOpener(string url)
+        {
+            try
+            {
                 var psi = new ProcessStartInfo
                 {
                     FileName = url,
                     UseShellExecute = true
                 };
                 Process.Start(psi);
+                return true;
             }
-            catch (Exception ex)
+            catch
             {
-                Logger.Log($"Error in QuickAddToCalendar: {ex}");
-                throw;
+                return false;
             }
         }
     }
