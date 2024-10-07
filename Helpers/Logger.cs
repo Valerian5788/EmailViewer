@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace EmailViewer
+namespace EmailViewer.Helpers
 {
     public static class Logger
     {

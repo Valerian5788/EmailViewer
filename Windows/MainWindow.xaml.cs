@@ -15,6 +15,8 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Diagnostics;
 using Google.Apis.Auth.OAuth2.Flows;
+using EmailViewer.Services;
+using EmailViewer.Helpers;
 
 namespace EmailViewer
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace EmailViewer.Utilities
+namespace EmailViewer.Services
 {
     public class RateLimiter
     {

@@ -1,0 +1,454 @@
+Structure du dossier
+Le numéro de série du volume est C819-ACE2
+C:.
+¦   .gitattributes
+¦   .gitignore
+¦   App.xaml
+¦   App.xaml.cs
+¦   AppResources.xaml
+¦   AssemblyInfo.cs
+¦   auth.json
+¦   AuthManager.cs
+¦   ClickUpIntegration.cs
+¦   config.enc
+¦   emailIdMap.json
+¦   EmailIndexer.cs
+¦   EmailSearcher.cs
+¦   EmailViewer.csproj
+¦   EmailViewer.csproj.user
+¦   EmailViewer.sln
+¦   EventCreationWindow.xaml
+¦   EventCreationWindow.xaml.cs
+¦   FirstTimeSetupWindow.xaml
+¦   FirstTimeSetupWindow.xaml.cs
+¦   Logger.cs
+¦   LoginWindow.xaml
+¦   LoginWindow.xaml.cs
+¦   MainWindow.xaml
+¦   MainWindow.xaml.cs
+¦   Note.cs
+¦   NoteManager.cs
+¦   notes.json
+¦   NoteWindow.xaml
+¦   NoteWindow.xaml.cs
+¦   OneDriveIntegration.cs
+¦   PasswordPromptWindow.xaml
+¦   PasswordPromptWindow.xaml.cs
+¦   ProfileWindow.xaml
+¦   ProfileWindow.xaml.cs
+¦   project_structure.txt
+¦   RateLimiter.cs
+¦   README.md
+¦   recentEmails.json
+¦   RecentEmailsManager.cs
+¦   RegisterWindow.xaml
+¦   RegisterWindow.xaml.cs
+¦   secretkeys.env
+¦   SecureStorage.cs
+¦   TaskCreationWindow.xaml
+¦   TaskCreationWindow.xaml.cs
+¦   
++---bin
+¦   +---Debug
+¦       +---net8.0-windows
+¦           ¦   Azure.Core.dll
+¦           ¦   Azure.Identity.dll
+¦           ¦   BCrypt.Net-Next.dll
+¦           ¦   BouncyCastle.Cryptography.dll
+¦           ¦   Castle.Core.dll
+¦           ¦   DotNetEnv.dll
+¦           ¦   EmailViewer.deps.json
+¦           ¦   EmailViewer.dll
+¦           ¦   EmailViewer.exe
+¦           ¦   EmailViewer.pdb
+¦           ¦   EmailViewer.runtimeconfig.json
+¦           ¦   EPPlus.dll
+¦           ¦   EPPlus.Interfaces.dll
+¦           ¦   EPPlus.System.Drawing.dll
+¦           ¦   Google.Apis.Auth.dll
+¦           ¦   Google.Apis.Calendar.v3.dll
+¦           ¦   Google.Apis.Core.dll
+¦           ¦   Google.Apis.dll
+¦           ¦   Humanizer.dll
+¦           ¦   J2N.dll
+¦           ¦   Lucene.Net.Analysis.Common.dll
+¦           ¦   Lucene.Net.dll
+¦           ¦   Lucene.Net.Queries.dll
+¦           ¦   Lucene.Net.QueryParser.dll
+¦           ¦   Lucene.Net.Sandbox.dll
+¦           ¦   Microsoft.Bcl.AsyncInterfaces.dll
+¦           ¦   Microsoft.CodeAnalysis.CSharp.dll
+¦           ¦   Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+¦           ¦   Microsoft.CodeAnalysis.dll
+¦           ¦   Microsoft.CodeAnalysis.Workspaces.dll
+¦           ¦   Microsoft.Data.SqlClient.dll
+¦           ¦   Microsoft.EntityFrameworkCore.Abstractions.dll
+¦           ¦   Microsoft.EntityFrameworkCore.Design.dll
+¦           ¦   Microsoft.EntityFrameworkCore.dll
+¦           ¦   Microsoft.EntityFrameworkCore.Relational.dll
+¦           ¦   Microsoft.EntityFrameworkCore.SqlServer.dll
+¦           ¦   Microsoft.Extensions.Caching.Abstractions.dll
+¦           ¦   Microsoft.Extensions.Caching.Memory.dll
+¦           ¦   Microsoft.Extensions.Configuration.Abstractions.dll
+¦           ¦   Microsoft.Extensions.Configuration.dll
+¦           ¦   Microsoft.Extensions.Configuration.FileExtensions.dll
+¦           ¦   Microsoft.Extensions.Configuration.Json.dll
+¦           ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+¦           ¦   Microsoft.Extensions.DependencyInjection.dll
+¦           ¦   Microsoft.Extensions.DependencyModel.dll
+¦           ¦   Microsoft.Extensions.FileProviders.Abstractions.dll
+¦           ¦   Microsoft.Extensions.FileProviders.Physical.dll
+¦           ¦   Microsoft.Extensions.FileSystemGlobbing.dll
+¦           ¦   Microsoft.Extensions.Logging.Abstractions.dll
+¦           ¦   Microsoft.Extensions.Logging.dll
+¦           ¦   Microsoft.Extensions.Options.dll
+¦           ¦   Microsoft.Extensions.Primitives.dll
+¦           ¦   Microsoft.Identity.Client.dll
+¦           ¦   Microsoft.Identity.Client.Extensions.Msal.dll
+¦           ¦   Microsoft.Identity.Client.NativeInterop.dll
+¦           ¦   Microsoft.IdentityModel.Abstractions.dll
+¦           ¦   Microsoft.IdentityModel.JsonWebTokens.dll
+¦           ¦   Microsoft.IdentityModel.Logging.dll
+¦           ¦   Microsoft.IdentityModel.Protocols.dll
+¦           ¦   Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+¦           ¦   Microsoft.IdentityModel.Tokens.dll
+¦           ¦   Microsoft.IO.RecyclableMemoryStream.dll
+¦           ¦   Microsoft.SqlServer.Server.dll
+¦           ¦   Microsoft.TestPlatform.CommunicationUtilities.dll
+¦           ¦   Microsoft.TestPlatform.CoreUtilities.dll
+¦           ¦   Microsoft.TestPlatform.CrossPlatEngine.dll
+¦           ¦   Microsoft.TestPlatform.PlatformAbstractions.dll
+¦           ¦   Microsoft.TestPlatform.Utilities.dll
+¦           ¦   Microsoft.VisualStudio.CodeCoverage.Shim.dll
+¦           ¦   Microsoft.VisualStudio.TestPlatform.Common.dll
+¦           ¦   Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
+¦           ¦   Microsoft.Web.WebView2.Core.dll
+¦           ¦   Microsoft.Web.WebView2.WinForms.dll
+¦           ¦   Microsoft.Web.WebView2.Wpf.dll
+¦           ¦   MimeKit.dll
+¦           ¦   Mono.TextTemplating.dll
+¦           ¦   Moq.dll
+¦           ¦   Newtonsoft.Json.dll
+¦           ¦   secretkeys.env
+¦           ¦   Sprache.dll
+¦           ¦   System.Composition.AttributedModel.dll
+¦           ¦   System.Composition.Convention.dll
+¦           ¦   System.Composition.Hosting.dll
+¦           ¦   System.Composition.Runtime.dll
+¦           ¦   System.Composition.TypedParts.dll
+¦           ¦   System.IdentityModel.Tokens.Jwt.dll
+¦           ¦   System.IO.Pipelines.dll
+¦           ¦   System.Management.dll
+¦           ¦   System.Memory.Data.dll
+¦           ¦   System.Runtime.Caching.dll
+¦           ¦   testhost.dll
+¦           ¦   testhost.exe
+¦           ¦   xunit.abstractions.dll
+¦           ¦   xunit.assert.dll
+¦           ¦   xunit.core.dll
+¦           ¦   xunit.execution.dotnet.dll
+¦           ¦   xunit.runner.reporters.netcoreapp10.dll
+¦           ¦   xunit.runner.utility.netcoreapp10.dll
+¦           ¦   xunit.runner.visualstudio.testadapter.dll
+¦           ¦   
+¦           +---cs
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---de
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---es
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---fr
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---it
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---ja
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---ko
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---Logs
+¦           ¦       app_20241005.log
+¦           ¦       
+¦           +---pl
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---pt-BR
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---ru
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---runtimes
+¦           ¦   +---unix
+¦           ¦   ¦   +---lib
+¦           ¦   ¦       +---net6.0
+¦           ¦   ¦               Microsoft.Data.SqlClient.dll
+¦           ¦   ¦               
+¦           ¦   +---win
+¦           ¦   ¦   +---lib
+¦           ¦   ¦       +---net6.0
+¦           ¦   ¦       ¦       Microsoft.Data.SqlClient.dll
+¦           ¦   ¦       ¦       System.Runtime.Caching.dll
+¦           ¦   ¦       ¦       
+¦           ¦   ¦       +---net7.0
+¦           ¦   ¦               System.Management.dll
+¦           ¦   ¦               
+¦           ¦   +---win-arm
+¦           ¦   ¦   +---native
+¦           ¦   ¦           Microsoft.Data.SqlClient.SNI.dll
+¦           ¦   ¦           
+¦           ¦   +---win-arm64
+¦           ¦   ¦   +---native
+¦           ¦   ¦           Microsoft.Data.SqlClient.SNI.dll
+¦           ¦   ¦           msalruntime_arm64.dll
+¦           ¦   ¦           WebView2Loader.dll
+¦           ¦   ¦           
+¦           ¦   +---win-x64
+¦           ¦   ¦   +---native
+¦           ¦   ¦           Microsoft.Data.SqlClient.SNI.dll
+¦           ¦   ¦           msalruntime.dll
+¦           ¦   ¦           WebView2Loader.dll
+¦           ¦   ¦           
+¦           ¦   +---win-x86
+¦           ¦       +---native
+¦           ¦               Microsoft.Data.SqlClient.SNI.dll
+¦           ¦               msalruntime_x86.dll
+¦           ¦               WebView2Loader.dll
+¦           ¦               
+¦           +---tr
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---zh-Hans
+¦           ¦       Microsoft.CodeAnalysis.CSharp.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.resources.dll
+¦           ¦       Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦           ¦       
+¦           +---zh-Hant
+¦                   Microsoft.CodeAnalysis.CSharp.resources.dll
+¦                   Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+¦                   Microsoft.CodeAnalysis.resources.dll
+¦                   Microsoft.CodeAnalysis.Workspaces.resources.dll
+¦                   Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+¦                   Microsoft.TestPlatform.CoreUtilities.resources.dll
+¦                   Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+¦                   Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+¦                   Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+¦                   
++---Data
+¦       AppDbContext.cs
+¦       
++---email_index
+¦       segments.gen
+¦       segments_v
+¦       write.lock
+¦       _u.fdt
+¦       _u.fdx
+¦       _u.fnm
+¦       _u.nvd
+¦       _u.nvm
+¦       _u.si
+¦       _u_Lucene41_0.doc
+¦       _u_Lucene41_0.pos
+¦       _u_Lucene41_0.tim
+¦       _u_Lucene41_0.tip
+¦       
++---Migrations
+¦       20240925082236_InitialCreate.cs
+¦       20240925082236_InitialCreate.Designer.cs
+¦       20240925083007_UpdateUserModel.cs
+¦       20240925083007_UpdateUserModel.Designer.cs
+¦       20240925084229_FlexibleUserModel.cs
+¦       20240925084229_FlexibleUserModel.Designer.cs
+¦       20240930120752_RemoveFieldsFromUser.cs
+¦       20240930120752_RemoveFieldsFromUser.Designer.cs
+¦       20240930142826_AddClickUpFields.cs
+¦       20240930142826_AddClickUpFields.Designer.cs
+¦       20241002073545_RemoveClickUpFields.cs
+¦       20241002073545_RemoveClickUpFields.Designer.cs
+¦       AppDbContextModelSnapshot.cs
+¦       
++---Models
+¦       User.cs
+¦       
++---obj
+¦   ¦   EmailViewer.csproj.EntityFrameworkCore.targets
+¦   ¦   EmailViewer.csproj.nuget.dgspec.json
+¦   ¦   EmailViewer.csproj.nuget.g.props
+¦   ¦   EmailViewer.csproj.nuget.g.targets
+¦   ¦   project.assets.json
+¦   ¦   project.nuget.cache
+¦   ¦   
+¦   +---Debug
+¦       +---net8.0-windows
+¦           ¦   .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+¦           ¦   App.g.cs
+¦           ¦   App.g.i.cs
+¦           ¦   apphost.exe
+¦           ¦   AppResources.baml
+¦           ¦   EmailVie.2994A686.Up2Date
+¦           ¦   EmailViewer.AssemblyInfo.cs
+¦           ¦   EmailViewer.AssemblyInfoInputs.cache
+¦           ¦   EmailViewer.assets.cache
+¦           ¦   EmailViewer.csproj.AssemblyReference.cache
+¦           ¦   EmailViewer.csproj.BuildWithSkipAnalyzers
+¦           ¦   EmailViewer.csproj.CoreCompileInputs.cache
+¦           ¦   EmailViewer.csproj.FileListAbsolute.txt
+¦           ¦   EmailViewer.csproj.ResolveComReference.cache
+¦           ¦   EmailViewer.designer.deps.json
+¦           ¦   EmailViewer.designer.runtimeconfig.json
+¦           ¦   EmailViewer.dll
+¦           ¦   EmailViewer.g.resources
+¦           ¦   EmailViewer.GeneratedMSBuildEditorConfig.editorconfig
+¦           ¦   EmailViewer.genruntimeconfig.cache
+¦           ¦   EmailViewer.GlobalUsings.g.cs
+¦           ¦   EmailViewer.pdb
+¦           ¦   EmailViewer.sourcelink.json
+¦           ¦   EmailViewer_Content.g.cs
+¦           ¦   EmailViewer_Content.g.i.cs
+¦           ¦   EmailViewer_MarkupCompile.cache
+¦           ¦   EmailViewer_MarkupCompile.i.cache
+¦           ¦   EmailViewer_wcnae00z_wpftmp.AssemblyInfo.cs
+¦           ¦   EmailViewer_wcnae00z_wpftmp.AssemblyInfoInputs.cache
+¦           ¦   EmailViewer_wcnae00z_wpftmp.assets.cache
+¦           ¦   EmailViewer_wcnae00z_wpftmp.csproj.BuildWithSkipAnalyzers
+¦           ¦   EmailViewer_wcnae00z_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦           ¦   EmailViewer_wcnae00z_wpftmp.GlobalUsings.g.cs
+¦           ¦   EventCreationWindow.baml
+¦           ¦   EventCreationWindow.g.cs
+¦           ¦   EventCreationWindow.g.i.cs
+¦           ¦   FirstTimeSetupWindow.baml
+¦           ¦   FirstTimeSetupWindow.g.cs
+¦           ¦   FirstTimeSetupWindow.g.i.cs
+¦           ¦   Interop.Microsoft.Office.Interop.Excel.dll
+¦           ¦   LoginWindow.baml
+¦           ¦   LoginWindow.g.cs
+¦           ¦   LoginWindow.g.i.cs
+¦           ¦   MainWindow.baml
+¦           ¦   MainWindow.g.cs
+¦           ¦   MainWindow.g.i.cs
+¦           ¦   NoteWindow.baml
+¦           ¦   NoteWindow.g.cs
+¦           ¦   NoteWindow.g.i.cs
+¦           ¦   PasswordPromptWindow.baml
+¦           ¦   PasswordPromptWindow.g.cs
+¦           ¦   PasswordPromptWindow.g.i.cs
+¦           ¦   ProfileWindow.baml
+¦           ¦   ProfileWindow.g.cs
+¦           ¦   ProfileWindow.g.i.cs
+¦           ¦   RegisterWindow.baml
+¦           ¦   RegisterWindow.g.cs
+¦           ¦   RegisterWindow.g.i.cs
+¦           ¦   StartupWindow.g.i.cs
+¦           ¦   TaskCreationWindow.baml
+¦           ¦   TaskCreationWindow.g.cs
+¦           ¦   TaskCreationWindow.g.i.cs
+¦           ¦   
+¦           +---ref
+¦           ¦       EmailViewer.dll
+¦           ¦       
+¦           +---refint
+¦                   EmailViewer.dll
+¦                   
++---Properties
+        launchSettings.json
+        

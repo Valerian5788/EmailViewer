@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace EmailViewer
+namespace EmailViewer.Services
 {
     public class ClickUpIntegration
     {
@@ -19,7 +19,7 @@ namespace EmailViewer
             _httpClient = new HttpClient();
             _apiKey = apiKey;
             _httpClient.DefaultRequestHeaders.Add("Authorization", _apiKey);
-            this.getOrCreateEmailId = getOrCreateEmailIdFunc;
+            getOrCreateEmailId = getOrCreateEmailIdFunc;
         }
 
         public async Task<List<ClickUpUser>> GetUsersAsync(string teamId)

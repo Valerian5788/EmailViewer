@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Newtonsoft.Json;
+using EmailViewer.Models;
 
-namespace EmailViewer
+namespace EmailViewer.Services
 {
     public class NoteManager
     {

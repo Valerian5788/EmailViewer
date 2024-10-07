@@ -8,6 +8,8 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using Newtonsoft.Json;
+using EmailViewer.Services;
+using EmailViewer.Helpers;
 
 namespace EmailViewer
 {

@@ -4,6 +4,7 @@ using EmailViewer.Data;
 using EmailViewer.Models;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using EmailViewer.Helpers;
 
 namespace EmailViewer
 {

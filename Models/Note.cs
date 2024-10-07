@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace EmailViewer
+namespace EmailViewer.Models
 {
     public class Note
     {

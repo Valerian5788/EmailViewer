@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EmailViewer.Data;
 using EmailViewer.Models;
-using EmailViewer.Utilities;
 using BCrypt.Net;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2;
@@ -14,6 +13,8 @@ using Google.Apis.Util.Store;
 using Google.Apis.Util;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using EmailViewer.Services;
+using EmailViewer.Helpers;
 
 namespace EmailViewer
 {

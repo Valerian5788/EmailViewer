@@ -1,13 +1,14 @@
 ﻿using System;
 using System.IO;
+using EmailViewer.Helpers;
 
-namespace EmailViewer
+namespace EmailViewer.Services
 {
     public class OneDriveIntegration
     {
         private static string oneDriveRootPath;
         private const string ONEDRIVE_BASE_URL = "https://1drv.ms/u/s!";
-        private static string RESOURCE_ID => Environment.GetEnvironmentVariable("ONEDRIVE_RESSOURCEID"); 
+        private static string RESOURCE_ID => Environment.GetEnvironmentVariable("ONEDRIVE_RESSOURCEID");
 
         public static void SetOneDriveRootPath(string path)
         {

@@ -7,8 +7,9 @@ using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Lucene.Net.QueryParsers.Classic;
+using EmailViewer.Helpers;
 
-namespace EmailViewer
+namespace EmailViewer.Services
 {
     public class EmailIndexer : IDisposable
     {
@@ -50,7 +51,7 @@ namespace EmailViewer
                     {
                         throw;
                     }
-                    System.Threading.Thread.Sleep(1000); // Wait for 1 second before retrying
+                    Thread.Sleep(1000); // Wait for 1 second before retrying
                 }
             }
         }

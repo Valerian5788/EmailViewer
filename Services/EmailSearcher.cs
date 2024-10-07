@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using MimeKit;
 
-namespace EmailViewer
+namespace EmailViewer.Services
 {
     public class EmailSearcher
     {
