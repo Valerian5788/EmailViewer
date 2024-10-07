@@ -12,7 +12,12 @@
 secretkeys.env
 secretkeys.env.txt
 email_index
-
+project_structure.txt
+recentEmails.json
+notes.json
+emailIdMap.json
+config.enc
+auth.json
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
