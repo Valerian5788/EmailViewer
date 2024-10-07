@@ -1,0 +1,25 @@
+[
+  {
+    "Id": 1,
+    "EmailPath": "test@example.com",
+    "Title": "Updated Title",
+    "Content": "Updated Content",
+    "CreatedAt": "2024-10-07T11:20:44.6859453+02:00",
+    "UpdatedAt": "2024-10-07T11:20:44.7228336+02:00",
+    "Tags": [
+      "Updated",
+      "Important"
+    ],
+    "TagsString": "Updated, Important"
+  },
+  {
+    "Id": 2,
+    "EmailPath": "test@example.com",
+    "Title": "Test Note",
+    "Content": "This is a test note",
+    "CreatedAt": "2024-10-07T11:20:44.714608+02:00",
+    "UpdatedAt": "2024-10-07T11:20:44.7146106+02:00",
+    "Tags": [],
+    "TagsString": ""
+  }
+]

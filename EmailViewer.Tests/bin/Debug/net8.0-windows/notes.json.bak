@@ -1,0 +1,45 @@
+[
+  {
+    "Id": 1,
+    "EmailPath": "test@example.com",
+    "Title": "Test Note",
+    "Content": "This is a test note",
+    "CreatedAt": "2024-10-05T15:23:33.4106685+02:00",
+    "UpdatedAt": "2024-10-05T15:23:33.410692+02:00",
+    "Tags": [
+      "Test",
+      "Important"
+    ],
+    "TagsString": "Test, Important"
+  },
+  {
+    "Id": 2,
+    "EmailPath": "test@example.com",
+    "Title": "Note 1",
+    "Content": "Content 1",
+    "CreatedAt": "2024-10-05T15:23:33.4267675+02:00",
+    "UpdatedAt": "2024-10-05T15:23:33.4267692+02:00",
+    "Tags": [],
+    "TagsString": ""
+  },
+  {
+    "Id": 3,
+    "EmailPath": "test@example.com",
+    "Title": "Note 2",
+    "Content": "Content 2",
+    "CreatedAt": "2024-10-05T15:23:33.4273999+02:00",
+    "UpdatedAt": "2024-10-05T15:23:33.4274014+02:00",
+    "Tags": [],
+    "TagsString": ""
+  },
+  {
+    "Id": 4,
+    "EmailPath": "other@example.com",
+    "Title": "Note 3",
+    "Content": "Content 3",
+    "CreatedAt": "2024-10-05T15:23:33.4278501+02:00",
+    "UpdatedAt": "2024-10-05T15:23:33.4278516+02:00",
+    "Tags": [],
+    "TagsString": ""
+  }
+]

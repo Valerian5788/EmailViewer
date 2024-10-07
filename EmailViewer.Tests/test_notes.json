@@ -1,0 +1,110 @@
+[
+  {
+    "Id": 1,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "Updated Title",
+    "Content": "Updated Content",
+    "CreatedAt": "2024-10-02T10:46:38.2900957+02:00",
+    "UpdatedAt": "2024-10-07T11:44:04.9382785+02:00",
+    "Tags": [
+      "Updated",
+      "Important"
+    ],
+    "TagsString": "Updated, Important"
+  },
+  {
+    "Id": 3,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "Tag testing as usual",
+    "Content": "Je test si le tag est refresh et la note",
+    "CreatedAt": "2024-10-02T11:12:21.0390487+02:00",
+    "UpdatedAt": "2024-10-02T11:12:21.0390534+02:00",
+    "Tags": [
+      "To Do"
+    ],
+    "TagsString": "To Do"
+  },
+  {
+    "Id": 4,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "test refresh",
+    "Content": "refresh ok?",
+    "CreatedAt": "2024-10-02T11:15:55.8132084+02:00",
+    "UpdatedAt": "2024-10-02T11:15:55.8132123+02:00",
+    "Tags": [
+      "To Do",
+      "Urgent"
+    ],
+    "TagsString": "To Do, Urgent"
+  },
+  {
+    "Id": 5,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "refresh again",
+    "Content": "testetetet",
+    "CreatedAt": "2024-10-02T11:27:20.8825238+02:00",
+    "UpdatedAt": "2024-10-02T14:16:51.9818502+02:00",
+    "Tags": [
+      "Urgent"
+    ],
+    "TagsString": "Urgent"
+  },
+  {
+    "Id": 6,
+    "EmailPath": "C:\\Users\\User\\OneDrive\\ClickUpEmails\\test todo.eml",
+    "Title": "test 34",
+    "Content": "fzgzgzgzgz",
+    "CreatedAt": "2024-10-07T10:42:03.6510633+02:00",
+    "UpdatedAt": "2024-10-07T10:42:03.6510666+02:00",
+    "Tags": [
+      "To Do"
+    ],
+    "TagsString": "To Do"
+  },
+  {
+    "Id": 7,
+    "EmailPath": "test@example.com",
+    "Title": "Test Note",
+    "Content": "This is a test note",
+    "CreatedAt": "2024-10-07T11:40:16.1916812+02:00",
+    "UpdatedAt": "2024-10-07T11:40:16.1916826+02:00",
+    "Tags": [
+      "Test",
+      "Important"
+    ],
+    "TagsString": "Test, Important"
+  },
+  {
+    "Id": 8,
+    "EmailPath": "test@example.com",
+    "Title": "Test Note",
+    "Content": "This is a test note",
+    "CreatedAt": "2024-10-07T11:40:16.2347025+02:00",
+    "UpdatedAt": "2024-10-07T11:40:16.2347039+02:00",
+    "Tags": [],
+    "TagsString": ""
+  },
+  {
+    "Id": 9,
+    "EmailPath": "test@example.com",
+    "Title": "Test Note",
+    "Content": "This is a test note",
+    "CreatedAt": "2024-10-07T11:44:04.874518+02:00",
+    "UpdatedAt": "2024-10-07T11:44:04.8745194+02:00",
+    "Tags": [
+      "Test",
+      "Important"
+    ],
+    "TagsString": "Test, Important"
+  },
+  {
+    "Id": 10,
+    "EmailPath": "test@example.com",
+    "Title": "Test Note",
+    "Content": "This is a test note",
+    "CreatedAt": "2024-10-07T11:44:04.9217219+02:00",
+    "UpdatedAt": "2024-10-07T11:44:04.9217238+02:00",
+    "Tags": [],
+    "TagsString": ""
+  }
+]
