@@ -18,6 +18,9 @@ notes.json
 emailIdMap.json
 config.enc
 auth.json
+test_notes.json
+
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
