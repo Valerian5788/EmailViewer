@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace EmailViewer.Tests.Helpers
+namespace EmailViewer.Tests
 {
     public static class LoggerTest
     {

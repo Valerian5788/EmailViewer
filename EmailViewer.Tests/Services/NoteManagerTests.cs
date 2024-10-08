@@ -6,7 +6,7 @@ using Xunit;
 using EmailViewer.Models;
 using EmailViewer.Services;
 using Newtonsoft.Json;
-using EmailViewer.Tests.Helpers;
+using EmailViewer.Tests;
 
 namespace EmailViewer.Tests.Services
 {
