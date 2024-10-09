@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EmailViewer.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d55ee63e46977efd46479f2f963364d47b9af03")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b6db9715abbfe316cdd0f17158a1336fb4f2016")]
 [assembly: System.Reflection.AssemblyProductAttribute("EmailViewer.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EmailViewer.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

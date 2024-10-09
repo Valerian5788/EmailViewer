@@ -14,26 +14,29 @@ namespace EmailViewer.Services
     public class EmailIndexer : IDisposable
     {
         private const LuceneVersion AppLuceneVersion = LuceneVersion.LUCENE_48;
-        private const string INDEX_DIR = "email_index";
-        private IndexWriter writer;
-        private FSDirectory directory;
+        private readonly string _indexDir;
+        private IndexWriter _writer;
+        private FSDirectory _directory;
 
-        public EmailIndexer()
+        public EmailIndexer(string indexDir = null)
         {
-            InitializeIndexWriter();
+            _indexDir = indexDir ?? Path.Combine(Path.GetTempPath(), "email_index");
+            InitializeIndexWriter(true);
         }
 
-        private void InitializeIndexWriter()
+        private void InitializeIndexWriter(bool create)
         {
-            directory = FSDirectory.Open(INDEX_DIR);
+            _directory = FSDirectory.Open(_indexDir);
             var analyzer = new StandardAnalyzer(AppLuceneVersion);
-            var config = new IndexWriterConfig(AppLuceneVersion, analyzer);
+            var config = new IndexWriterConfig(AppLuceneVersion, analyzer)
+            {
+                OpenMode = create ? OpenMode.CREATE : OpenMode.CREATE_OR_APPEND
+            };
 
-            // Check for stale lock before creating IndexWriter
-            if (IndexWriter.IsLocked(directory))
+            if (IndexWriter.IsLocked(_directory))
             {
                 Logger.Log("Stale lock detected. Attempting to clear...");
-                IndexWriter.Unlock(directory);
+                IndexWriter.Unlock(_directory);
             }
 
             int retries = 3;
@@ -41,7 +44,7 @@ namespace EmailViewer.Services
             {
                 try
                 {
-                    writer = new IndexWriter(directory, config);
+                    _writer = new IndexWriter(_directory, config);
                     break;
                 }
                 catch (LockObtainFailedException)
@@ -51,7 +54,7 @@ namespace EmailViewer.Services
                     {
                         throw;
                     }
-                    Thread.Sleep(1000); // Wait for 1 second before retrying
+                    System.Threading.Thread.Sleep(1000);
                 }
             }
         }
@@ -67,13 +70,13 @@ namespace EmailViewer.Services
                 new Int64Field("date", date.Ticks, Field.Store.YES)
             };
 
-            writer.AddDocument(doc);
-            writer.Commit();
+            _writer.AddDocument(doc);
+            _writer.Commit();
         }
 
         public SearchResult[] Search(string searchTerm, int maxResults = 10)
         {
-            using (var reader = writer.GetReader(true))
+            using (var reader = _writer.GetReader(true))
             {
                 var searcher = new IndexSearcher(reader);
                 var parser = new MultiFieldQueryParser(AppLuceneVersion, new[] { "subject", "body" }, new StandardAnalyzer(AppLuceneVersion));
@@ -100,8 +103,8 @@ namespace EmailViewer.Services
 
         public void Dispose()
         {
-            writer?.Dispose();
-            directory?.Dispose();
+            _writer?.Dispose();
+            _directory?.Dispose();
         }
     }
 
