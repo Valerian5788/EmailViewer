@@ -39,6 +39,9 @@ namespace EmailViewer
         private string _ClickUpApiKey;
         private EmailService emailService;
         private EmailViewerCalendarService calendarService;
+        private EnhancedEmailService enhancedEmailService;
+        private EnhancedEmailService.EmailThread currentThread;
+        private int currentMessageIndex = 0;
 
 
         private MainWindow()
@@ -92,6 +95,7 @@ namespace EmailViewer
             availableTags = new ObservableCollection<string> { "Urgent", "To Do", "To Treat" };
             selectedTags = new ObservableCollection<string>();
             calendarService = new EmailViewerCalendarService(currentUser);
+            enhancedEmailService = new EnhancedEmailService();
             Closing += MainWindow_Closing;
 
             // Prompt for configuration password
@@ -184,37 +188,64 @@ namespace EmailViewer
             }
         }
 
+        private void DisplayEnhancedEmail(string filePath)
+        {
+            currentThread = enhancedEmailService.LoadEmailThread(filePath);
+            currentMessageIndex = currentThread.Messages.Count - 1; // Start with the most recent message
+            DisplayCurrentMessage();
+        }
+
+        private void DisplayCurrentMessage()
+        {
+            var currentMessage = currentThread.Messages[currentMessageIndex];
+
+            fromTextBlock.Text = $"From: {currentMessage.From}";
+            subjectTextBlock.Text = $"Subject: {currentMessage.Subject}";
+            dateTextBlock.Text = $"Date: {currentMessage.Date}";
+
+            string sanitizedHtml = enhancedEmailService.SanitizeHtml(currentMessage.HtmlBody ?? currentMessage.TextBody);
+            emailWebBrowser.NavigateToString(sanitizedHtml);
+
+            UpdateThreadNavigation();
+        }
+
+        private void UpdateThreadNavigation()
+        {
+            previousButton.IsEnabled = currentMessageIndex > 0;
+            nextButton.IsEnabled = currentMessageIndex < currentThread.Messages.Count - 1;
+            messageCountLabel.Text = $"{currentMessageIndex + 1} / {currentThread.Messages.Count}";
+        }
+
+        private void PreviousButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentMessageIndex > 0)
+            {
+                currentMessageIndex--;
+                DisplayCurrentMessage();
+            }
+        }
+
+        private void NextButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentMessageIndex < currentThread.Messages.Count - 1)
+            {
+                currentMessageIndex++;
+                DisplayCurrentMessage();
+            }
+        }
+
+        // Replace the existing DisplayEmail method with this:
         private void DisplayEmail(string filePath)
         {
             try
             {
-                var emailContent = emailService.DisplayEmail(filePath);
-
-                emailContentRichTextBox.Document.Blocks.Clear();
-
-                Paragraph headerPara = new Paragraph();
-                headerPara.Inlines.Add(new Bold(new Run("From: ")));
-                headerPara.Inlines.Add(new Run(emailContent.From + Environment.NewLine));
-                headerPara.Inlines.Add(new Bold(new Run("Subject: ")));
-                headerPara.Inlines.Add(new Run(emailContent.Subject + Environment.NewLine));
-                headerPara.Inlines.Add(new Bold(new Run("Date: ")));
-                headerPara.Inlines.Add(new Run(emailContent.Date + Environment.NewLine));
-
-                emailContentRichTextBox.Document.Blocks.Add(headerPara);
-
-                Paragraph bodyPara = new Paragraph(new Run(emailContent.Body));
-                bodyPara.FontWeight = FontWeights.Normal;
-                bodyPara.Margin = new Thickness(0, 10, 0, 0);
-
-                emailContentRichTextBox.Document.Blocks.Add(bodyPara);
-
-                currentEmailPath = emailContent.FilePath;
+                DisplayEnhancedEmail(filePath);
+                currentEmailPath = filePath;
                 LoadNotesForCurrentEmail();
                 LoadRecentEmails();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error displaying email: {ex.Message}");
                 MessageBox.Show($"Error loading email: {ex.Message}");
             }
         }

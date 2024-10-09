@@ -165,6 +165,10 @@
               "target": "Package",
               "version": "[1.68.0.3536, )"
             },
+            "HtmlAgilityPack": {
+              "target": "Package",
+              "version": "[1.11.67, )"
+            },
             "Lucene.Net": {
               "target": "Package",
               "version": "[4.8.0-beta00016, )"
